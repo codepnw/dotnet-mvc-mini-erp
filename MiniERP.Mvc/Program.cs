@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Mvc.Controllers;
 using MiniERP.Mvc.Data;
+using MiniERP.Mvc.Repositories;
+using MiniERP.Mvc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSqlServer<AppDbContext>(
     builder.Configuration.GetConnectionString("DefaultConnection")
 );
+
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
