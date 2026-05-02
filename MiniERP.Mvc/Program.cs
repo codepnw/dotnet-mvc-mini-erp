@@ -13,6 +13,8 @@ builder.Services.AddSqlServer<AppDbContext>(
 
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
