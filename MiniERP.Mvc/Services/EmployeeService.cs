@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs;
 using MiniERP.Mvc.Entities;
@@ -13,74 +14,78 @@ namespace MiniERP.Mvc.Services;
 
 public interface IEmployeeService
 {
-    Task<EmployeeViewModel> CreateEmployee(EmployeeCreateDTO dto);
-    Task<List<EmployeeViewModel>> ListEmployees();
-    Task<EmployeeViewModel> GetEmployeeById(int id);
-    Task<EmployeeViewModel> UpdateEmployee(int id, EmployeeUpdateDTO dto);
-    Task<bool> DeleteEmployee(int id);
+    Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDTO dto);
+    Task<Result<List<EmployeeViewModel>>> ListEmployees();
+    Task<Result<EmployeeViewModel>> GetEmployeeById(int id);
+    Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDTO dto);
+    Task<Result> DeleteEmployee(int id);
 }
 
 public class EmployeeService(IEmployeeRepository repository) : IEmployeeService
 {
     private readonly IEmployeeRepository _repository = repository;
 
-    public async Task<EmployeeViewModel> CreateEmployee(EmployeeCreateDTO dto)
+    public async Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDTO dto)
     {
-        var emp = dto.ToCreateEntity();
+        var employee = dto.ToCreateEntity();
 
-        _repository.Add(emp);
-        await _repository.SaveChangesAsync();
+        _repository.Add(employee);
+        var rowAffected = await _repository.SaveChangesAsync();
 
-        return emp.ToViewModel();
+        if (rowAffected == 0)
+            return Result<EmployeeViewModel>.Failure("db insert employee failed", ErrorCode.InternalServerError);
+
+        return Result<EmployeeViewModel>.Success(employee.ToViewModel());
     }
 
-    public async Task<List<EmployeeViewModel>> ListEmployees()
+    public async Task<Result<List<EmployeeViewModel>>> ListEmployees()
     {
         var employees = await _repository.ListAsync();
 
         var response = employees.Select(e => e.ToViewModel()).ToList();
 
-        return response;
+        return Result<List<EmployeeViewModel>>.Success(response);
     }
 
-    public async Task<EmployeeViewModel> GetEmployeeById(int id)
+    public async Task<Result<EmployeeViewModel>> GetEmployeeById(int id)
     {
-        return await PrivateGetEmployeeDetails(id);
+        var employee = await _repository.FindByIdNoTrackingAsync(id);
+
+        if (employee is null)
+            return Result<EmployeeViewModel>.Failure("employee not found", ErrorCode.NotFound);
+
+        return Result<EmployeeViewModel>.Success(employee.ToViewModel());
     }
 
-    public async Task<EmployeeViewModel> UpdateEmployee(int id, EmployeeUpdateDTO dto)
+    public async Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDTO dto)
     {
-        var emp = await PrivateGetEmployeeId(id);
+        var employee = await _repository.FindByIdAsync(id);
 
-        dto.ToUpdateEntity(emp);
+        if (employee is null)
+            return Result<EmployeeViewModel>.Failure("employee not found", ErrorCode.NotFound);
 
-        _repository.Update(emp);
-        await _repository.SaveChangesAsync();
+        dto.ToUpdateEntity(employee);
 
-        return emp.ToViewModel();
+        var rowAffected = await _repository.SaveChangesAsync();
+
+        if (rowAffected == 0)
+            return Result<EmployeeViewModel>.Failure("db update employee failed", ErrorCode.InternalServerError);
+
+        return Result<EmployeeViewModel>.Success(employee.ToViewModel());
     }
 
-    public async Task<bool> DeleteEmployee(int id)
+    public async Task<Result> DeleteEmployee(int id)
     {
+        var exists = await _repository.CheckIdAsync(id);
+
+        if (!exists)
+            return Result.Failure("employee not found", ErrorCode.NotFound);
+
         var rowAffected = await _repository.Delete(id);
 
-        if (rowAffected == 0) throw new NotFoundException("employee id not found");
+        if (rowAffected == 0)
+            return Result.Failure("db delete employee failed", ErrorCode.InternalServerError);
 
-        return true;
-    }
-
-    private async Task<Employee> PrivateGetEmployeeId(int id)
-    {
-        var emp = await _repository.FindByIdAsync(id)
-            ?? throw new NotFoundException("employee id not found");
-
-        return emp;
-    }
-
-    private async Task<EmployeeViewModel> PrivateGetEmployeeDetails(int id)
-    {
-        var emp = await PrivateGetEmployeeId(id);
-
-        return emp.ToViewModel();
+        return Result.Success();
     }
 }
