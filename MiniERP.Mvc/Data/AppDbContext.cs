@@ -36,6 +36,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .IsUnique();
         
         employee
+            .HasQueryFilter(x => !x.IsDeleted);
+        
+        employee
             .Property(x => x.Salary)
             .HasPrecision(10, 2);
 
@@ -78,6 +81,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         leaveReq
             .Property(x => x.Status)
             .HasConversion<string>();
+        
+        leaveReq
+            .HasQueryFilter(x => !x.IsDeleted);
         
         leaveReq
             .Property(x => x.Reason)

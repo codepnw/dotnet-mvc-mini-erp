@@ -67,7 +67,6 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             .AsNoTracking()
             .Include(x => x.Employee)
             .Include(x => x.LeaveType)
-            .Where(x => !x.IsDeleted)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return data is null
@@ -108,7 +107,6 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
         var overlap = await _context.LeaveRequests
             .AnyAsync(x =>
                 x.Id != id &&
-                !x.IsDeleted &&
                 x.EmployeeId == data.EmployeeId &&
                 dto.FromDate <= x.ToDate &&
                 dto.ToDate >= x.FromDate
@@ -167,7 +165,6 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
     private async Task<Result<LeaveRequest>> FindLeaveRequestById(int id)
     {
         var data = await _context.LeaveRequests
-            .Where(x => !x.IsDeleted)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return data is null
