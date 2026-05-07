@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Controllers;
 using MiniERP.Mvc.Data;
@@ -5,6 +6,10 @@ using MiniERP.Mvc.Repositories;
 using MiniERP.Mvc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddControllersWithViews()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // Connect SQL Server
 builder.Services.AddSqlServer<AppDbContext>(
@@ -15,6 +20,7 @@ builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -42,8 +48,8 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.Run();

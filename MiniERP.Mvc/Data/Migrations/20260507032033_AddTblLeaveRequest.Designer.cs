@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniERP.Mvc.Data;
 
@@ -11,9 +12,11 @@ using MiniERP.Mvc.Data;
 namespace MiniERP.Mvc.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507032033_AddTblLeaveRequest")]
+    partial class AddTblLeaveRequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,9 +61,8 @@ namespace MiniERP.Mvc.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CitizenId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("CitizenId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -143,7 +145,7 @@ namespace MiniERP.Mvc.Data.Migrations
 
                     b.HasIndex("LeaveTypeId");
 
-                    b.ToTable("LeaveRequests");
+                    b.ToTable("LeaveRequest");
                 });
 
             modelBuilder.Entity("MiniERP.Mvc.Entities.LeaveType", b =>
@@ -174,30 +176,7 @@ namespace MiniERP.Mvc.Data.Migrations
                     b.HasIndex("Title")
                         .IsUnique();
 
-                    b.ToTable("LeaveTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            Title = "Sick Leave"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            Title = "Vacation Leave"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            Title = "Personal Leave"
-                        });
+                    b.ToTable("LeaveType");
                 });
 
             modelBuilder.Entity("MiniERP.Mvc.Entities.Employee", b =>
