@@ -9,6 +9,8 @@ public class Employee
     public required string LastName { get; set; }
     public required string CitizenId { get; set; }
     public decimal Salary { get; set; }
+
+    public bool IsDeleted { get; set; } = false;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 

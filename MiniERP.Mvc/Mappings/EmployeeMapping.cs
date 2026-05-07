@@ -11,6 +11,7 @@ public static class EmployeeMapping
     {
         FirstName = dto.FirstName,
         LastName = dto.LastName,
+        CitizenId = dto.CitizenId,
         Salary = dto.Salary,
         DepartmentId = dto.DepartmentId
     };
@@ -27,7 +28,8 @@ public static class EmployeeMapping
     public static EmployeeViewModel ToViewModel(this Employee emp) => new()
     {
         Id = emp.Id,
-        FullName = $"{emp.FirstName} {emp.LastName}",
+        FirstName = emp.FirstName,
+        LastName = emp.LastName,
         SalaryText = emp.Salary.ToString("N2"),
         DepartmentTitle = emp.Department != null ? emp.Department.Title : "N/A"
     };

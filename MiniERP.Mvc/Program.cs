@@ -16,7 +16,6 @@ builder.Services.AddSqlServer<AppDbContext>(
     builder.Configuration.GetConnectionString("DefaultConnection")
 );
 
-builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
