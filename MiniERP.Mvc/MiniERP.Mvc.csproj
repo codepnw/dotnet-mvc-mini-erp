@@ -9,12 +9,7 @@
   <ItemGroup>
     <Folder Include="Common/" />
     <Folder Include="Data/" />
-    <Folder Include="DTOs/" />
-    <Folder Include="Entities/" />
     <Folder Include="Exceptions/" />
-    <Folder Include="Mappings/" />
-    <Folder Include="Repositories/" />
-    <Folder Include="Services/" />
   </ItemGroup>
 
   <ItemGroup>

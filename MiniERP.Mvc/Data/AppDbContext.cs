@@ -25,6 +25,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         department
             .HasIndex(x => x.Title)
             .IsUnique();
+        
+        department
+            .HasQueryFilter(x => !x.IsDeleted);
 
         department
             .Property(x => x.CreatedAt)

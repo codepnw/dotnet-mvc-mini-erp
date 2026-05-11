@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Controllers;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.Repositories;
 using MiniERP.Mvc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,7 +16,6 @@ builder.Services.AddSqlServer<AppDbContext>(
 );
 
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 

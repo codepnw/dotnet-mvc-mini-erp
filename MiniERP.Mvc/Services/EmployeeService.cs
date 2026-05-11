@@ -8,7 +8,6 @@ using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Exceptions;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Models;
-using MiniERP.Mvc.Repositories;
 
 namespace MiniERP.Mvc.Services;
 
