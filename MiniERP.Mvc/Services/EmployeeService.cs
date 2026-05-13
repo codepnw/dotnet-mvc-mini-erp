@@ -1,11 +1,9 @@
-using System;
-using System.Drawing;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs;
-using MiniERP.Mvc.Entities;
-using MiniERP.Mvc.Exceptions;
+using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Models;
 
@@ -14,7 +12,7 @@ namespace MiniERP.Mvc.Services;
 public interface IEmployeeService
 {
     Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDTO dto);
-    Task<Result<IReadOnlyList<EmployeeViewModel>>> ListEmployees();
+    Task<Result<PagedResult<EmployeeViewModel>>> ListEmployees(EmployeeQuery req);
     Task<Result<EmployeeViewModel>> GetEmployeeById(int id);
     Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDTO dto);
     Task<Result> DeleteEmployee(int id);
@@ -44,12 +42,34 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
             : Result<EmployeeViewModel>.Success(employee.ToViewModel());
     }
 
-    public async Task<Result<IReadOnlyList<EmployeeViewModel>>> ListEmployees()
+    public async Task<Result<PagedResult<EmployeeViewModel>>> ListEmployees(EmployeeQuery req)
     {
-        var listData = await _context.Employees
-            .AsNoTracking()
+        var query = _context.Employees.AsNoTracking().AsQueryable();
+
+        // Search name
+        if (!string.IsNullOrEmpty(req.Search))
+        {
+            query = query.Where(x =>
+                x.FirstName.Contains(req.Search) ||
+                x.LastName.Contains(req.Search));
+        }
+
+        // Filter departmentId 
+        if (req.DepartmentId is not null)
+        {
+            query = query.Where(x => x.DepartmentId == req.DepartmentId);
+        }
+
+        // Total Count
+        var totalCount = await query.CountAsync();
+
+        // List Items
+        var items = await query
+            .OrderBy(x => x.Id)
+            .Paginate(req.Page, req.PageSize)
             .Select(x => new EmployeeViewModel
             {
+                Id = x.Id,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
                 SalaryText = x.Salary.ToString("N2"),
@@ -57,7 +77,16 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
             })
             .ToListAsync();
 
-        return Result<IReadOnlyList<EmployeeViewModel>>.Success(listData);
+        // Response Result
+        var result = new PagedResult<EmployeeViewModel>()
+        {
+            Items = items,
+            Page = req.Page,
+            PageSize = req.PageSize,
+            TotalCount = totalCount
+        };
+
+        return Result<PagedResult<EmployeeViewModel>>.Success(result);
     }
 
     public async Task<Result<EmployeeViewModel>> GetEmployeeById(int id)

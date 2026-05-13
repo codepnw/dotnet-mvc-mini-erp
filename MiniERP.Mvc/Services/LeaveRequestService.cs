@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs;
 using MiniERP.Mvc.Entities;
+using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Models;
 
@@ -12,7 +14,7 @@ public interface ILeaveRequestService
 {
     Task<Result> CreateLeaveRequest(LeaveRequestCreateDTO dto);
     Task<Result<LeaveRequestViewModel>> GetLeaveRequest(int id);
-    Task<Result<IReadOnlyList<LeaveRequestViewModel>>> GetAllLeaveRequests();
+    Task<Result<PagedResult<LeaveRequestViewModel>>> ListLeaveRequests(LeaveRequestQuery req);
     Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDTO dto);
     Task<Result> UpdateLeaveRequestStatus(int id, LeaveStatus status);
     Task<Result> DeleteLeaveRequest(int id);
@@ -74,11 +76,40 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             : Result<LeaveRequestViewModel>.Success(data.ToLeaveRequestViewModel());
     }
 
-    public async Task<Result<IReadOnlyList<LeaveRequestViewModel>>> GetAllLeaveRequests()
+    public async Task<Result<PagedResult<LeaveRequestViewModel>>> ListLeaveRequests(LeaveRequestQuery req)
     {
-        var listData = await _context.LeaveRequests
-            .AsNoTracking()
-            .Where(x => !x.IsDeleted)
+        var query = _context.LeaveRequests.AsNoTracking().AsQueryable();
+
+        // Search Status
+        if (req.Status is not null)
+        {
+            query = query.Where(x => x.Status == req.Status);
+        }
+
+        // Filter EmployeeId 
+        if (req.EmployeeId is not null)
+        {
+            query = query.Where(x => x.EmployeeId == req.EmployeeId);
+        }
+
+        // Filter From Date
+        if (req.FromDate is not null)
+        {
+            query = query.Where(x => x.FromDate.Date >= req.FromDate.Value.Date);
+        }
+
+        // Filter To Date
+        if (req.ToDate is not null)
+        {
+            query = query.Where(x => x.ToDate.Date <= req.ToDate.Value.Date);
+        }
+
+        var totalCount = await query.CountAsync();
+
+        // List Items
+        var items = await query
+            .OrderBy(x => x.Id)
+            .Paginate(req.Page, req.PageSize)
             .Select(x => new LeaveRequestViewModel
             {
                 Id = x.Id,
@@ -93,7 +124,16 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             })
             .ToListAsync();
 
-        return Result<IReadOnlyList<LeaveRequestViewModel>>.Success(listData);
+        // Response Result
+        var result = new PagedResult<LeaveRequestViewModel>
+        {
+            Items = items,
+            Page = req.Page,
+            PageSize = req.PageSize,
+            TotalCount = totalCount
+        };
+
+        return Result<PagedResult<LeaveRequestViewModel>>.Success(result);
     }
 
     public async Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDTO dto)

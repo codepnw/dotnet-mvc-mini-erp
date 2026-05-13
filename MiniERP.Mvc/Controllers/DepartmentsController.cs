@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.DTOs;
 using MiniERP.Mvc.Services;
 
@@ -9,9 +10,9 @@ namespace MiniERP.Mvc.Controllers
         private readonly IDepartmentService _service = service;
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(DepartmentQuery req)
         {
-            var result = await _service.GetDepartments();
+            var result = await _service.ListDepartments(req);
 
             return Json(result);
         }

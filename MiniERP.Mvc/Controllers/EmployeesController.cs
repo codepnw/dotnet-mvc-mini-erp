@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc;
+using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.DTOs;
 using MiniERP.Mvc.Models;
 using MiniERP.Mvc.Services;
@@ -12,13 +13,14 @@ namespace MiniERP.Mvc.Controllers
         private readonly IEmployeeService _service = service;
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(EmployeeQuery req)
         {
-            var result = await _service.ListEmployees();
+            var result = await _service.ListEmployees(req);
 
             return result.IsFailure
                 ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
-                : View(result.Data);
+                // TODO: return View
+                : Json(result.Data);
         }
 
         [HttpGet]

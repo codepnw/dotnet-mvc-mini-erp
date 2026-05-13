@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.DTOs;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Services;
@@ -11,9 +12,9 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
     private readonly ILeaveRequestService _service = service;
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(LeaveRequestQuery req)
     {
-        var result = await _service.GetAllLeaveRequests();
+        var result = await _service.ListLeaveRequests(req);
 
         return result.IsFailure
             ? Json(new { message = result.ErrorMessage })

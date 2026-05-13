@@ -6,17 +6,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Exceptions;
+using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Models;
+
 namespace MiniERP.Mvc.Services;
 
 public interface IDepartmentService
 {
-    Task<Result<IReadOnlyList<DepartmentViewModel>>> GetDepartments();
+    Task<Result<PagedResult<DepartmentViewModel>>> ListDepartments(DepartmentQuery req);
     Task<Result<DepartmentViewModel>> GetDepartment(int id);
     Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDTO dto);
     Task<Result<DepartmentViewModel>> EditDepartment(int id, DepartmentDTO dto);
@@ -27,18 +30,39 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<IReadOnlyList<DepartmentViewModel>>> GetDepartments()
+    public async Task<Result<PagedResult<DepartmentViewModel>>> ListDepartments(DepartmentQuery req)
     {
-        var departments = await _context.Departments
-            .AsNoTracking()
-            .Select(d => new DepartmentViewModel
+        var query = _context.Departments.AsNoTracking().AsQueryable();
+
+        // Search name
+        if (!string.IsNullOrEmpty(req.Search))
+        {
+            query = query.Where(x => x.Title.Contains(req.Search));
+        }
+
+        // Total Count
+        var totalCount = await query.CountAsync();
+        
+        // List Items
+        var items = await query
+            .Paginate(req.Page, req.PageSize)
+            .Select(x => new DepartmentViewModel
             {
-                Id = d.Id,
-                Title = d.Title
+                Id = x.Id,
+                Title = x.Title,
             })
             .ToListAsync();
+    
+        // Response Result
+        var result = new PagedResult<DepartmentViewModel>()
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = req.Page,
+            PageSize = req.PageSize
+        };
 
-        return Result<IReadOnlyList<DepartmentViewModel>>.Success(departments);
+        return Result<PagedResult<DepartmentViewModel>>.Success(result);
     }
 
     public async Task<Result<DepartmentViewModel>> GetDepartment(int id)
@@ -103,7 +127,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
         department.IsDeleted = true;
         department.UpdatedAt = DateTime.UtcNow;
-        
+
         var rowAffected = await _context.SaveChangesAsync();
 
         return rowAffected == 0
