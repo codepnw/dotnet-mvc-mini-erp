@@ -21,7 +21,7 @@ public class UserCreateDto
     public required string LastName { get; init; }
 }
 
-public record UserLoginDto
+public class UserLoginDto
 {
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid Email Address")]
