@@ -17,8 +17,8 @@ namespace MiniERP.Mvc.Services;
 
 public interface IUserService
 {
-    Task<Result<AuthViewModel>> CreateUser(UserRegisterDTO dto);
-    Task<Result<AuthViewModel>> Login(UserLoginDTO dto);
+    Task<Result<AuthViewModel>> CreateUser(UserCreateDto dto);
+    Task<Result<AuthViewModel>> Login(UserLoginDto dto);
 }
 
 public class UserService(AppDbContext context, IConfiguration config) : IUserService
@@ -31,7 +31,7 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
     private readonly double _accessTokenExpireHours = double.Parse(config["Jwt:AccessExpireHours"]!);
     private readonly double _refreshTokenExpireHours = double.Parse(config["Jwt:RefreshExpireHours"]!);
 
-    public async Task<Result<AuthViewModel>> CreateUser(UserRegisterDTO dto)
+    public async Task<Result<AuthViewModel>> CreateUser(UserCreateDto dto)
     {
         var normalizedEmail = EmailLowerCase(dto.Email);
 
@@ -81,7 +81,7 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
         return Result<AuthViewModel>.Success(response);
     }
 
-    public async Task<Result<AuthViewModel>> Login(UserLoginDTO dto)
+    public async Task<Result<AuthViewModel>> Login(UserLoginDto dto)
     {
         var normalizedEmail = EmailLowerCase(dto.Email);
         
