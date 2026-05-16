@@ -18,6 +18,11 @@ public interface IProductService
     Task<Result<ProductViewModel>> GetProduct(int id);
     Task<Result> UpdateProduct(int id, ProductUpdateDto dto);
     Task<Result> DeleteProduct(int id);
+    
+    // ----------- Stock Movement ---------------
+    Task<Result> IncreaseStock(int productId, int quantity);
+    Task<Result> DecreaseStock(int productId, int quantity);
+    Task<Result> AdjustStock(int productId, int newStock, string remark);
 }
 
 public class ProductService(AppDbContext context) : IProductService
@@ -146,5 +151,90 @@ public class ProductService(AppDbContext context) : IProductService
         return product is null
             ? Result<Product>.Failure("Product not found", ErrorCode.NotFound)
             : Result<Product>.Success(product);
+    }
+
+    // ------------------------- Stock Movement ---------------------------
+
+    public async Task<Result> IncreaseStock(int productId, int quantity)
+    {
+        var result = await FindProductById(productId);
+        var product = result.Data;
+
+        if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
+        
+        if (quantity <= 0) return Result.Failure("Increase stock greater than zero", ErrorCode.BadRequest);
+
+        // Increase Stock
+        product.Stock += quantity;
+
+        // Add Stock Movement
+        _context.StockMovements.Add(new StockMovement
+        {
+            ProductId = product.Id,
+            Quantity = quantity,
+            MovementType = StockMovementType.In
+        });
+
+        var rowAffected = await _context.SaveChangesAsync();
+
+        return rowAffected == 0
+            ? Result.Failure("Increase stock failed", ErrorCode.InternalServerError)
+            : Result.Success();
+    }
+
+    public async Task<Result> DecreaseStock(int productId, int quantity)
+    {
+        var result = await FindProductById(productId);
+        var product = result.Data;
+
+        if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
+
+        // Check Stock
+        if (product.Stock < quantity) return Result.Failure("Stock not Enough", ErrorCode.BadRequest);
+
+        // Decrease Stock
+        product.Stock -= quantity;
+
+        // Add Stock Movement
+        _context.StockMovements.Add(new StockMovement
+        {
+            ProductId = product.Id,
+            Quantity = -quantity,
+            MovementType = StockMovementType.Out
+        });
+
+        var rowAffected = await _context.SaveChangesAsync();
+
+        return rowAffected == 0
+            ? Result.Failure("Decrease stock failed", ErrorCode.InternalServerError)
+            : Result.Success();
+    }
+
+    public async Task<Result> AdjustStock(int productId, int newStock, string remark)
+    {
+        var result = await FindProductById(productId);
+        var product = result.Data;
+
+        if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
+
+        var diff = newStock - product.Stock;
+
+        // Update Stock
+        product.Stock = newStock;
+
+        // Add Stock Movement
+        _context.StockMovements.Add(new StockMovement
+        {
+            ProductId = product.Id,
+            Quantity = diff,
+            MovementType = StockMovementType.Adjust,
+            Remark = remark
+        });
+
+        var rowAffected = await _context.SaveChangesAsync();
+
+        return rowAffected == 0
+            ? Result.Failure("Adjust stock failed", ErrorCode.InternalServerError)
+            : Result.Success();
     }
 }

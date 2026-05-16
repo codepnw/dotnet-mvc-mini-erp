@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +28,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         var leaveReq = modelBuilder.Entity<LeaveRequest>();
         var category = modelBuilder.Entity<Category>();
         var product = modelBuilder.Entity<Product>();
+        var stockMovement = modelBuilder.Entity<StockMovement>();
 
         // ------------- User ----------------
 
@@ -122,5 +124,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         product.HasQueryFilter(x => !x.IsDeleted);
         
         product.Property(x => x.CreatedAt).HasDefaultValueSql(getUtcDate);
+
+        // ------------- Stock Movement ----------------
+        
+        stockMovement.Property(x => x.MovementType).HasConversion<string>();
+        stockMovement.Property(x => x.CreatedAt).HasDefaultValueSql(getUtcDate);
     }
 }
