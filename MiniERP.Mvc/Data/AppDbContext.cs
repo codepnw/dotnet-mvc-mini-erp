@@ -11,6 +11,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<LeaveType> LeaveTypes => Set<LeaveType>();
     public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Product> Products => Set<Product>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +25,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         var department = modelBuilder.Entity<Department>();
         var leaveType = modelBuilder.Entity<LeaveType>();
         var leaveReq = modelBuilder.Entity<LeaveRequest>();
+        var category = modelBuilder.Entity<Category>();
+        var product = modelBuilder.Entity<Product>();
 
         // ------------- User ----------------
 
@@ -93,5 +97,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         leaveReq.Property(x => x.Reason).HasMaxLength(255);
 
         leaveReq.Property(x => x.CreatedAt).HasDefaultValueSql(getUtcDate);
+
+        // ------------- Category ----------------
+        
+        category.HasIndex(x => x.Title).IsUnique();
+        
+        category.Property(x => x.Title).HasMaxLength(100);
+        category.Property(x => x.Description).HasMaxLength(255);
+        
+        category.HasQueryFilter(x => !x.IsDeleted);
+        
+        category.Property(x => x.CreatedAt).HasDefaultValueSql(getUtcDate);
+
+        // ------------- Product ----------------
+        
+        product.HasIndex(x => x.Name).IsUnique();
+        product.HasIndex(x => x.Sku).IsUnique();
+        
+        product.Property(x => x.Price).HasPrecision(10, 2);
+        
+        product.Property(x => x.Name).HasMaxLength(100);
+        product.Property(x => x.Sku).HasMaxLength(100);
+        
+        product.HasQueryFilter(x => !x.IsDeleted);
+        
+        product.Property(x => x.CreatedAt).HasDefaultValueSql(getUtcDate);
     }
 }

@@ -21,8 +21,8 @@ public interface IDepartmentService
 {
     Task<Result<PagedResult<DepartmentViewModel>>> ListDepartments(DepartmentQuery req);
     Task<Result<DepartmentViewModel>> GetDepartment(int id);
-    Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDTO dto);
-    Task<Result<DepartmentViewModel>> EditDepartment(int id, DepartmentDTO dto);
+    Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDto dto);
+    Task<Result<DepartmentViewModel>> EditDepartment(int id, DepartmentDto dto);
     Task<Result> DeleteDepartment(int id);
 }
 
@@ -76,7 +76,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
             : Result<DepartmentViewModel>.Success(department.ToViewModel());
     }
 
-    public async Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDTO dto)
+    public async Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDto dto)
     {
         var exists = await _context.Departments.AnyAsync(d => d.Title == dto.Title);
 
@@ -93,7 +93,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
             : Result<DepartmentViewModel>.Success(department.ToViewModel());
     }
 
-    public async Task<Result<DepartmentViewModel>> EditDepartment(int id, DepartmentDTO dto)
+    public async Task<Result<DepartmentViewModel>> EditDepartment(int id, DepartmentDto dto)
     {
         var department = await _context.Departments.FirstOrDefaultAsync(d => d.Id == id);
 

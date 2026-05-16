@@ -7,7 +7,7 @@ namespace MiniERP.Mvc.Mappings;
 
 public static class EmployeeMapping
 {
-    public static Employee ToCreateEntity(this EmployeeCreateDTO dto) => new()
+    public static Employee ToCreateEntity(this EmployeeCreateDto dto) => new()
     {
         FirstName = dto.FirstName,
         LastName = dto.LastName,
@@ -16,7 +16,7 @@ public static class EmployeeMapping
         DepartmentId = dto.DepartmentId
     };
 
-    public static void ToUpdateEntity(this EmployeeUpdateDTO dto, Employee emp)
+    public static void ToUpdateEntity(this EmployeeUpdateDto dto, Employee emp)
     {
         emp.FirstName = dto.FirstName ?? emp.FirstName;
         emp.LastName = dto.LastName ?? emp.LastName;

@@ -11,10 +11,10 @@ namespace MiniERP.Mvc.Services;
 
 public interface IEmployeeService
 {
-    Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDTO dto);
+    Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDto dto);
     Task<Result<PagedResult<EmployeeViewModel>>> ListEmployees(EmployeeQuery req);
     Task<Result<EmployeeViewModel>> GetEmployeeById(int id);
-    Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDTO dto);
+    Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDto dto);
     Task<Result> DeleteEmployee(int id);
 }
 
@@ -22,7 +22,7 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDTO dto)
+    public async Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDto dto)
     {
         var deptExists = await _context.Departments
             .AsNoTracking()
@@ -100,7 +100,7 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
             : Result<EmployeeViewModel>.Success(data.ToViewModel());
     }
 
-    public async Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDTO dto)
+    public async Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDto dto)
     {
         var employee = await _context.Employees.FirstOrDefaultAsync(x => x.Id == id);
 

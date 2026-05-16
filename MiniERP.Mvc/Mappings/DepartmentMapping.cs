@@ -7,7 +7,7 @@ namespace MiniERP.Mvc.Mappings;
 
 public static class DepartmentMapping
 {
-    public static Department ToEntity(this DepartmentDTO dto) => new()
+    public static Department ToEntity(this DepartmentDto dto) => new()
     {
         Title = dto.Title
     };

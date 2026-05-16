@@ -7,7 +7,7 @@ namespace MiniERP.Mvc.Mappings;
 
 public static class LeaveRequestMappings
 {
-    public static LeaveRequest ToLeaveRequestEntity(this LeaveRequestCreateDTO dto, LeaveStatus status) => new()
+    public static LeaveRequest ToLeaveRequestEntity(this LeaveRequestCreateDto dto, LeaveStatus status) => new()
     {
         EmployeeId = dto.EmployeeId,
         LeaveTypeId = dto.LeaveTypeId,
@@ -32,7 +32,7 @@ public static class LeaveRequestMappings
         Status = data.Status
     };
 
-    public static void ApplyUpdateLeaveRequest(this LeaveRequestUpdateDTO dto, LeaveRequest data)
+    public static void ApplyUpdateLeaveRequest(this LeaveRequestUpdateDto dto, LeaveRequest data)
     {
         data.FromDate = dto.FromDate ?? data.FromDate;
         data.ToDate = dto.ToDate ?? data.ToDate;

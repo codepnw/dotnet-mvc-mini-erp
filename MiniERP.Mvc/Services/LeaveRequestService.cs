@@ -12,10 +12,10 @@ namespace MiniERP.Mvc.Services;
 
 public interface ILeaveRequestService
 {
-    Task<Result> CreateLeaveRequest(LeaveRequestCreateDTO dto);
+    Task<Result> CreateLeaveRequest(LeaveRequestCreateDto dto);
     Task<Result<LeaveRequestViewModel>> GetLeaveRequest(int id);
     Task<Result<PagedResult<LeaveRequestViewModel>>> ListLeaveRequests(LeaveRequestQuery req);
-    Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDTO dto);
+    Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDto dto);
     Task<Result> UpdateLeaveRequestStatus(int id, LeaveStatus status);
     Task<Result> DeleteLeaveRequest(int id);
 }
@@ -24,7 +24,7 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result> CreateLeaveRequest(LeaveRequestCreateDTO dto)
+    public async Task<Result> CreateLeaveRequest(LeaveRequestCreateDto dto)
     {
         if (dto.FromDate > dto.ToDate)
             return Result.Failure("Invalid date range", ErrorCode.BadRequest);
@@ -136,7 +136,7 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
         return Result<PagedResult<LeaveRequestViewModel>>.Success(result);
     }
 
-    public async Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDTO dto)
+    public async Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDto dto)
     {
         var result = await FindLeaveRequestById(id);
         var data = result.Data;
