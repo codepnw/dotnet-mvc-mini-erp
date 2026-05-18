@@ -14,6 +14,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +31,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         var category = modelBuilder.Entity<Category>();
         var product = modelBuilder.Entity<Product>();
         var stockMovement = modelBuilder.Entity<StockMovement>();
+        var order = modelBuilder.Entity<Order>();
+        var orderItem = modelBuilder.Entity<OrderItem>();
 
         // ------------- User ----------------
 
@@ -129,5 +133,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         
         stockMovement.Property(x => x.MovementType).HasConversion<string>();
         stockMovement.Property(x => x.CreatedAt).HasDefaultValueSql(getUtcDate);
+        
+        // ------------- Order ----------------
+        
+        order.Property(x => x.Status).HasConversion<string>();
+        order.Property(x => x.CreatedAt).HasDefaultValueSql(getUtcDate);
     }
 }
