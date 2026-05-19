@@ -14,7 +14,7 @@ public interface IEmployeeService
     Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDto dto);
     Task<Result<PagedResult<EmployeeViewModel>>> ListEmployees(EmployeeQuery req);
     Task<Result<EmployeeViewModel>> GetEmployeeById(int id);
-    Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDto dto);
+    Task<Result> UpdateEmployee(int id, EmployeeUpdateDto dto);
     Task<Result> DeleteEmployee(int id);
 }
 
@@ -35,11 +35,8 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 
         _context.Employees.Add(employee);
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result<EmployeeViewModel>.Failure("Insert employee failed", ErrorCode.InternalServerError)
-            : Result<EmployeeViewModel>.Success(employee.ToViewModel());
+        await _context.SaveChangesAsync();
+        return Result<EmployeeViewModel>.Success(employee.ToViewModel());
     }
 
     public async Task<Result<PagedResult<EmployeeViewModel>>> ListEmployees(EmployeeQuery req)
@@ -100,20 +97,17 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
             : Result<EmployeeViewModel>.Success(data.ToViewModel());
     }
 
-    public async Task<Result<EmployeeViewModel>> UpdateEmployee(int id, EmployeeUpdateDto dto)
+    public async Task<Result> UpdateEmployee(int id, EmployeeUpdateDto dto)
     {
         var employee = await _context.Employees.FirstOrDefaultAsync(x => x.Id == id);
 
         if (employee is null)
-            return Result<EmployeeViewModel>.Failure("Employee not found", ErrorCode.NotFound);
+            return Result.Failure("Employee not found", ErrorCode.NotFound);
 
         dto.ToUpdateEntity(employee);
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result<EmployeeViewModel>.Failure("Update employee failed", ErrorCode.InternalServerError)
-            : Result<EmployeeViewModel>.Success(employee.ToViewModel());
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result> DeleteEmployee(int id)
@@ -124,10 +118,8 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
             return Result.Failure("Employee not found", ErrorCode.NotFound);
 
         data.IsDeleted = true;
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Delete employee failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 }

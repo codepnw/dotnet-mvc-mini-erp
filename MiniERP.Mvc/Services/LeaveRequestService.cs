@@ -56,11 +56,9 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
         var reqEntity = dto.ToLeaveRequestEntity(LeaveStatus.Pending);
 
         _context.LeaveRequests.Add(reqEntity);
-        var rowAffected = await _context.SaveChangesAsync();
 
-        return rowAffected == 0
-            ? Result.Failure("Insert leave request failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result<LeaveRequestViewModel>> GetLeaveRequest(int id)
@@ -159,11 +157,8 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
         data.TotalDays = (data.ToDate.Date - data.FromDate.Date).Days + 1;
         data.UpdatedAt = DateTime.UtcNow;
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Update leave request failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result> UpdateLeaveRequestStatus(int id, LeaveStatus status)
@@ -179,11 +174,9 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
 
         data.Status = status;
         data.UpdatedAt = DateTime.UtcNow;
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Update leave request failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result> DeleteLeaveRequest(int id)
@@ -195,11 +188,9 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
         data.IsDeleted = true;
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Delete leave request failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     private async Task<Result<LeaveRequest>> FindLeaveRequestById(int id)

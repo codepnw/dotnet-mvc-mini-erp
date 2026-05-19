@@ -14,7 +14,7 @@ namespace MiniERP.Mvc.Services;
 public interface IProductService
 {
     Task<Result<PagedResult<ProductViewModel>>> ListProducts(ProductQuery req);
-    Task<Result> CreateProduct(ProductCreateDto dto);
+    Task<Result<ProductViewModel>> CreateProduct(ProductCreateDto dto);
     Task<Result<ProductViewModel>> GetProduct(int id);
     Task<Result<List<ProductViewModel>>> GetProductsLowStock();
     Task<Result> UpdateProduct(int id, ProductUpdateDto dto);
@@ -76,17 +76,18 @@ public class ProductService(AppDbContext context) : IProductService
         return Result<PagedResult<ProductViewModel>>.Success(result);
     }
 
-    public async Task<Result> CreateProduct(ProductCreateDto dto)
+    public async Task<Result<ProductViewModel>> CreateProduct(ProductCreateDto dto)
     {
         var exists = await _context.Products.AnyAsync(x => x.Name == dto.Name);
 
-        if (exists) return Result.Failure("Name already exists", ErrorCode.BadRequest);
+        if (exists) return Result<ProductViewModel>.Failure("Name already exists", ErrorCode.BadRequest);
 
+        var product = dto.ToEntity();
         // Add Product
-        _context.Add(dto.ToEntity());
+        _context.Add(product);
 
         await _context.SaveChangesAsync();
-        return Result.Success();
+        return Result<ProductViewModel>.Success(product.ToViewModel());
     }
 
     public async Task<Result<ProductViewModel>> GetProduct(int id)

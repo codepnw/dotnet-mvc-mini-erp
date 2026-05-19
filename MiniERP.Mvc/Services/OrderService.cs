@@ -9,7 +9,15 @@ using MiniERP.Mvc.Models;
 
 namespace MiniERP.Mvc.Services;
 
-public class OrderService(AppDbContext context)
+public interface IOrderService
+{
+    Task<Result> CreateOrder(OrderCreateDto dto);
+    Task<Result<PagedResult<OrderViewModel>>> ListOrders(OrderQuery req);
+    Task<Result<OrderDetailsViewModel>> GetOrderDetails(int orderId);
+    Task<Result> CancelOrder(int orderId);    
+}
+
+public class OrderService(AppDbContext context) : IOrderService
 {
     private readonly AppDbContext _context = context;
 

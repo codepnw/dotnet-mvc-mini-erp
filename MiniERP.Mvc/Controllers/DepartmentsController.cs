@@ -26,7 +26,7 @@ namespace MiniERP.Mvc.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] DepartmentDTO dto)
+        public async Task<IActionResult> Create([FromBody] DepartmentDto dto)
         {
             if (!ModelState.IsValid) return Json(ModelState);
 
@@ -36,7 +36,7 @@ namespace MiniERP.Mvc.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> Edit(int id, [FromBody] DepartmentDTO dto)
+        public async Task<IActionResult> Edit(int id, [FromBody] DepartmentDto dto)
         {
             if (!ModelState.IsValid) return Json(ModelState);
 

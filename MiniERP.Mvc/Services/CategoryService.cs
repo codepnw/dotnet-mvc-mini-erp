@@ -30,11 +30,9 @@ public class CategoryService(AppDbContext context) : ICategoryService
         if (exists) return Result.Failure("Category already exists", ErrorCode.BadRequest);
 
         _context.Categories.Add(dto.ToEntity());
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Insert category failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        
+        await _context.SaveChangesAsync();
+        return  Result.Success();
     }
 
     public async Task<Result<PagedResult<CategoryViewModel>>> ListCategories(CategoryQuery req)
@@ -101,11 +99,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
         // Update Category
         dto.ApplyUpdate(category);
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Update category failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return  Result.Success();
     }
 
     public async Task<Result> DeleteCategory(int id)
@@ -118,11 +113,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
         // Soft Delete Category
         category.IsDeleted = true;
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Delete category failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return  Result.Success();
     }
 
     private async Task<Result<Category>> FindCategoryById(int id)

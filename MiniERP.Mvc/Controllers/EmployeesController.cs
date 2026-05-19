@@ -17,10 +17,14 @@ namespace MiniERP.Mvc.Controllers
         {
             var result = await _service.ListEmployees(req);
 
-            return result.IsFailure
-                ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
-                // TODO: return View
-                : Json(result.Data);
+            if (!result.IsFailure) return View(result.Data);
+
+            ModelState.AddModelError("", result.ErrorMessage!);
+            return View(req);
+
+            // return result.IsFailure
+            //     ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
+            //     : View(result.Data);
         }
 
         [HttpGet]
@@ -40,15 +44,16 @@ namespace MiniERP.Mvc.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(EmployeeCreateDTO dto)
+        public async Task<IActionResult> Create(EmployeeCreateDto dto)
         {
             if (!ModelState.IsValid) return View(dto);
-
+            
             var result = await _service.CreateEmployee(dto);
 
-            return result.IsFailure
-                ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
-                : RedirectToAction("Index");
+            if (!result.IsFailure) return RedirectToAction("Index");
+
+            ModelState.AddModelError("", result.ErrorMessage!);
+            return View(dto);
         }
 
         [HttpGet]
@@ -62,7 +67,7 @@ namespace MiniERP.Mvc.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, EmployeeUpdateDTO dto)
+        public async Task<IActionResult> Edit(int id, EmployeeUpdateDto dto)
         {
             var result = await _service.UpdateEmployee(id, dto);
 

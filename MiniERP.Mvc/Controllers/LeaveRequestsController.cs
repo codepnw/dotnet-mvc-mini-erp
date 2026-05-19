@@ -32,7 +32,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
     }
     
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] LeaveRequestCreateDTO dto)
+    public async Task<IActionResult> Create([FromBody] LeaveRequestCreateDto dto)
     {
         if (!ModelState.IsValid) return Json(ModelState);
         
@@ -44,7 +44,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
     }
     
     [HttpPatch]
-    public async Task<IActionResult> Edit(int id, [FromBody] LeaveRequestUpdateDTO dto)
+    public async Task<IActionResult> Edit(int id, [FromBody] LeaveRequestUpdateDto dto)
     {
         if (!ModelState.IsValid) return Json(ModelState);
         

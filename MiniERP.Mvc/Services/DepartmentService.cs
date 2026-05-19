@@ -22,7 +22,7 @@ public interface IDepartmentService
     Task<Result<PagedResult<DepartmentViewModel>>> ListDepartments(DepartmentQuery req);
     Task<Result<DepartmentViewModel>> GetDepartment(int id);
     Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDto dto);
-    Task<Result<DepartmentViewModel>> EditDepartment(int id, DepartmentDto dto);
+    Task<Result> EditDepartment(int id, DepartmentDto dto);
     Task<Result> DeleteDepartment(int id);
 }
 
@@ -42,7 +42,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
         // Total Count
         var totalCount = await query.CountAsync();
-        
+
         // List Items
         var items = await query
             .Paginate(req.Page, req.PageSize)
@@ -52,7 +52,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
                 Title = x.Title,
             })
             .ToListAsync();
-    
+
         // Response Result
         var result = new PagedResult<DepartmentViewModel>()
         {
@@ -86,19 +86,17 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
         var department = dto.ToEntity();
 
         _context.Departments.Add(department);
-        var rowAffected = await _context.SaveChangesAsync();
 
-        return rowAffected == 0
-            ? Result<DepartmentViewModel>.Failure("Insert department failed", ErrorCode.InternalServerError)
-            : Result<DepartmentViewModel>.Success(department.ToViewModel());
+        await _context.SaveChangesAsync();
+        return Result<DepartmentViewModel>.Success(department.ToViewModel());
     }
 
-    public async Task<Result<DepartmentViewModel>> EditDepartment(int id, DepartmentDto dto)
+    public async Task<Result> EditDepartment(int id, DepartmentDto dto)
     {
         var department = await _context.Departments.FirstOrDefaultAsync(d => d.Id == id);
 
         if (department is null)
-            return Result<DepartmentViewModel>.Failure("Department not found", ErrorCode.NotFound);
+            return Result.Failure("Department not found", ErrorCode.NotFound);
 
         var exists = await _context.Departments.AnyAsync(d =>
             d.Id != id &&
@@ -106,16 +104,13 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
         );
 
         if (exists)
-            return Result<DepartmentViewModel>.Failure("Title already exists", ErrorCode.Conflict);
+            return Result.Failure("Title already exists", ErrorCode.Conflict);
 
         department.Title = dto.Title;
         department.UpdatedAt = DateTime.UtcNow;
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result<DepartmentViewModel>.Failure("Edit department failed", ErrorCode.InternalServerError)
-            : Result<DepartmentViewModel>.Success(department.ToViewModel());
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result> DeleteDepartment(int id)
@@ -128,10 +123,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
         department.IsDeleted = true;
         department.UpdatedAt = DateTime.UtcNow;
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Delete department failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 }

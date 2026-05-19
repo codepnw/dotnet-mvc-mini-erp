@@ -55,10 +55,7 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
 
         // Insert User to DB
         _context.Users.Add(newUser);
-        var rowAffected = await _context.SaveChangesAsync();
-
-        if (rowAffected == 0)
-            return Result<AuthViewModel>.Failure("Insert user failed", ErrorCode.InternalServerError);
+        await _context.SaveChangesAsync();
 
         // Generate Token
         var accessToken = GenerateJwtToken(
