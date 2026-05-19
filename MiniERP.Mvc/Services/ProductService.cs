@@ -16,13 +16,14 @@ public interface IProductService
     Task<Result<PagedResult<ProductViewModel>>> ListProducts(ProductQuery req);
     Task<Result> CreateProduct(ProductCreateDto dto);
     Task<Result<ProductViewModel>> GetProduct(int id);
+    Task<Result<List<ProductViewModel>>> GetProductsLowStock();
     Task<Result> UpdateProduct(int id, ProductUpdateDto dto);
     Task<Result> DeleteProduct(int id);
-    
+
     // ----------- Stock Movement ---------------
-    Task<Result> IncreaseStock(int productId, int quantity);
-    Task<Result> DecreaseStock(int productId, int quantity);
-    Task<Result> AdjustStock(int productId, int newStock, string remark);
+    Task<Result> IncreaseStock(int productId, ProductStockQuantityDto dto);
+    Task<Result> DecreaseStock(int productId, ProductStockQuantityDto dto);
+    Task<Result> AdjustStock(int productId, ProductStockAdjustDto dto);
 }
 
 public class ProductService(AppDbContext context) : IProductService
@@ -58,6 +59,7 @@ public class ProductService(AppDbContext context) : IProductService
                 Sku = x.Sku,
                 Price = x.Price,
                 Stock = x.Stock,
+                MinimumStock = x.MinimumStock,
                 CategoryTitle = x.Category != null ? x.Category.Title : "N/A"
             })
             .ToListAsync();
@@ -83,11 +85,8 @@ public class ProductService(AppDbContext context) : IProductService
         // Add Product
         _context.Add(dto.ToEntity());
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Insert product failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result<ProductViewModel>> GetProduct(int id)
@@ -100,6 +99,24 @@ public class ProductService(AppDbContext context) : IProductService
         return product is null
             ? Result<ProductViewModel>.Failure("Product not found", ErrorCode.NotFound)
             : Result<ProductViewModel>.Success(product.ToViewModel());
+    }
+
+    public async Task<Result<List<ProductViewModel>>> GetProductsLowStock()
+    {
+        var products = await _context.Products
+            .AsNoTracking().Where(x => x.Stock <= x.MinimumStock)
+            .Select(x => new ProductViewModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Sku = x.Sku,
+                Stock = x.Stock,
+                MinimumStock = x.MinimumStock,
+                Price = x.Price,
+            })
+            .ToListAsync();
+
+        return Result<List<ProductViewModel>>.Success(products);
     }
 
     public async Task<Result> UpdateProduct(int id, ProductUpdateDto dto)
@@ -120,11 +137,8 @@ public class ProductService(AppDbContext context) : IProductService
         // Update Product
         dto.ApplyUpdate(product);
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Update product failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     public async Task<Result> DeleteProduct(int id)
@@ -137,11 +151,8 @@ public class ProductService(AppDbContext context) : IProductService
         // Soft Delete Product
         product.IsDeleted = true;
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Delete product failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
     private async Task<Result<Product>> FindProductById(int id)
@@ -155,34 +166,31 @@ public class ProductService(AppDbContext context) : IProductService
 
     // ------------------------- Stock Movement ---------------------------
 
-    public async Task<Result> IncreaseStock(int productId, int quantity)
+    public async Task<Result> IncreaseStock(int productId, ProductStockQuantityDto dto)
     {
         var result = await FindProductById(productId);
         var product = result.Data;
 
         if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
-        
-        if (quantity <= 0) return Result.Failure("Increase stock greater than zero", ErrorCode.BadRequest);
+
+        if (dto.Quantity <= 0) return Result.Failure("Increase stock greater than zero", ErrorCode.BadRequest);
 
         // Increase Stock
-        product.Stock += quantity;
+        product.Stock += dto.Quantity;
 
         // Add Stock Movement
         _context.StockMovements.Add(new StockMovement
         {
             ProductId = product.Id,
-            Quantity = quantity,
+            Quantity = dto.Quantity,
             MovementType = StockMovementType.In
         });
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Increase stock failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
-    public async Task<Result> DecreaseStock(int productId, int quantity)
+    public async Task<Result> DecreaseStock(int productId, ProductStockQuantityDto dto)
     {
         var result = await FindProductById(productId);
         var product = result.Data;
@@ -190,37 +198,34 @@ public class ProductService(AppDbContext context) : IProductService
         if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
         // Check Stock
-        if (product.Stock < quantity) return Result.Failure("Stock not Enough", ErrorCode.BadRequest);
+        if (product.Stock < dto.Quantity) return Result.Failure("Stock not Enough", ErrorCode.BadRequest);
 
         // Decrease Stock
-        product.Stock -= quantity;
+        product.Stock -= dto.Quantity;
 
         // Add Stock Movement
         _context.StockMovements.Add(new StockMovement
         {
             ProductId = product.Id,
-            Quantity = -quantity,
+            Quantity = -dto.Quantity,
             MovementType = StockMovementType.Out
         });
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Decrease stock failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
-    public async Task<Result> AdjustStock(int productId, int newStock, string remark)
+    public async Task<Result> AdjustStock(int productId, ProductStockAdjustDto dto)
     {
         var result = await FindProductById(productId);
         var product = result.Data;
 
         if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
-        var diff = newStock - product.Stock;
+        var diff = dto.NewStock - product.Stock;
 
         // Update Stock
-        product.Stock = newStock;
+        product.Stock = dto.NewStock;
 
         // Add Stock Movement
         _context.StockMovements.Add(new StockMovement
@@ -228,13 +233,10 @@ public class ProductService(AppDbContext context) : IProductService
             ProductId = product.Id,
             Quantity = diff,
             MovementType = StockMovementType.Adjust,
-            Remark = remark
+            Remark = dto.Remark
         });
 
-        var rowAffected = await _context.SaveChangesAsync();
-
-        return rowAffected == 0
-            ? Result.Failure("Adjust stock failed", ErrorCode.InternalServerError)
-            : Result.Success();
+        await _context.SaveChangesAsync();
+        return Result.Success();
     }
 }

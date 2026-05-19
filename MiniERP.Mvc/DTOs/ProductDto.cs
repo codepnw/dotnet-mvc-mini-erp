@@ -21,6 +21,10 @@ public class ProductCreateDto
     [Range(1, 10000, ErrorMessage = "Stock must be between 1 and 10,000")]
     public required int Stock { get; init; }
 
+    [Required(ErrorMessage = "Minimum Stock is required")]
+    [Range(1, 100, ErrorMessage = "Minimum Stock must be between 1 and 100")]
+    public required int MinimumStock { get; init; }
+
     [Required(ErrorMessage = "Category id is required")]
     public required int CategoryId { get; init; }
 }
@@ -37,5 +41,26 @@ public class ProductUpdateDto
     [Range(1, 10000, ErrorMessage = "Stock must be between 1 and 10,000")]
     public int? Stock { get; init; }
 
+    [Range(1, 100, ErrorMessage = "Minimum Stock must be between 1 and 100")]
+    public int? MinimumStock { get; init; }
+
     public int? CategoryId { get; init; }
+}
+
+public class ProductStockAdjustDto
+{
+    [Required(ErrorMessage = "New Stock is required")]
+    [Range(1, 10000, ErrorMessage = "Stock must be between 1 and 10,000")]
+    public required int NewStock { get; init; }
+    
+    [Required(ErrorMessage = "Remark is required")]
+    [StringLength(100)]
+    public required string Remark { get; init; }
+}
+
+public class ProductStockQuantityDto
+{
+    [Required(ErrorMessage = "Quantity is required")]
+    [Range(1, 10000, ErrorMessage = "Quantity must be between 1 and 10,000")]
+    public required int Quantity { get; init; }
 }

@@ -12,6 +12,7 @@ public static class ProductMapping
         Sku = dto.Sku,
         Price = dto.Price,
         Stock = dto.Stock,
+        MinimumStock = dto.MinimumStock,
         CategoryId = dto.CategoryId,
     };
 
@@ -22,6 +23,7 @@ public static class ProductMapping
         Sku = product.Sku,
         Price = product.Price,
         Stock = product.Stock,
+        MinimumStock = product.MinimumStock,
         CategoryTitle = product.Category?.Title ?? "N/A",
         CreatedAt = product.CreatedAt,
         UpdatedAt = product.UpdatedAt,
@@ -33,6 +35,7 @@ public static class ProductMapping
         product.Sku = dto.Sku ?? product.Sku;
         product.Price = dto.Price ?? product.Price;
         product.Stock = dto.Stock ?? product.Stock;
+        product.MinimumStock = dto.MinimumStock ?? product.MinimumStock;
         product.CategoryId = dto.CategoryId ?? product.CategoryId;
 
         product.UpdatedAt = DateTime.UtcNow;

@@ -7,6 +7,7 @@ public class Product
     public required string Sku { get; set; }
     public required decimal Price { get; set; }
     public int Stock { get; set; }
+    public int MinimumStock { get; set; }
 
     public bool IsDeleted { get; set; } = false;
     public DateTime CreatedAt { get; set; }
