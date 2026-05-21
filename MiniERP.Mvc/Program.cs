@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Controllers;
 using MiniERP.Mvc.Data;
+using MiniERP.Mvc.Middlewares;
 using MiniERP.Mvc.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,6 +45,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthorization();
 
 app.MapStaticAssets();
