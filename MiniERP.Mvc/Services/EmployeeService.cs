@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Models;
@@ -11,10 +12,10 @@ namespace MiniERP.Mvc.Services;
 
 public interface IEmployeeService
 {
-    Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDto dto);
-    Task<Result<PagedResult<EmployeeViewModel>>> ListEmployees(EmployeeQuery req);
-    Task<Result<EmployeeViewModel>> GetEmployeeById(int id);
-    Task<Result> UpdateEmployee(int id, EmployeeUpdateDto dto);
+    Task<Result<EmployeeDto>> CreateEmployee(EmployeeCreateRequest request);
+    Task<Result<PagedResult<EmployeeDto>>> ListEmployees(EmployeeQuery request);
+    Task<Result<EmployeeDto>> GetEmployeeById(int id);
+    Task<Result> UpdateEmployee(int id, EmployeeUpdateRequest request);
     Task<Result> DeleteEmployee(int id);
 }
 
@@ -22,39 +23,39 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<EmployeeViewModel>> CreateEmployee(EmployeeCreateDto dto)
+    public async Task<Result<EmployeeDto>> CreateEmployee(EmployeeCreateRequest request)
     {
         var deptExists = await _context.Departments
             .AsNoTracking()
-            .AnyAsync(x => x.Id == dto.DepartmentId);
+            .AnyAsync(x => x.Id == request.DepartmentId);
 
         if (!deptExists)
-            return Result<EmployeeViewModel>.Failure("Department id not found", ErrorCode.NotFound);
+            return Result<EmployeeDto>.Failure("Department id not found", ErrorCode.NotFound);
 
-        var employee = dto.ToCreateEntity();
+        var employee = request.ToCreateEntity();
 
         _context.Employees.Add(employee);
-
         await _context.SaveChangesAsync();
-        return Result<EmployeeViewModel>.Success(employee.ToViewModel());
+        
+        return Result<EmployeeDto>.Success(employee.ToEmployeeDto());
     }
 
-    public async Task<Result<PagedResult<EmployeeViewModel>>> ListEmployees(EmployeeQuery req)
+    public async Task<Result<PagedResult<EmployeeDto>>> ListEmployees(EmployeeQuery request)
     {
         var query = _context.Employees.AsNoTracking().AsQueryable();
 
         // Search name
-        if (!string.IsNullOrEmpty(req.Search))
+        if (!string.IsNullOrEmpty(request.Search))
         {
             query = query.Where(x =>
-                x.FirstName.Contains(req.Search) ||
-                x.LastName.Contains(req.Search));
+                x.FirstName.Contains(request.Search) ||
+                x.LastName.Contains(request.Search));
         }
 
         // Filter departmentId 
-        if (req.DepartmentId is not null)
+        if (request.DepartmentId is not null)
         {
-            query = query.Where(x => x.DepartmentId == req.DepartmentId);
+            query = query.Where(x => x.DepartmentId == request.DepartmentId);
         }
 
         // Total Count
@@ -63,50 +64,51 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
         // List Items
         var items = await query
             .OrderBy(x => x.Id)
-            .Paginate(req.Page, req.PageSize)
-            .Select(x => new EmployeeViewModel
+            .Paginate(request.Page, request.PageSize)
+            .Select(x => new EmployeeDto
             {
                 Id = x.Id,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
-                SalaryText = x.Salary.ToString("N2"),
+                Salary = x.Salary,
+                DepartmentId = x.DepartmentId,
                 DepartmentTitle = x.Department!.Title,
             })
             .ToListAsync();
 
         // Response Result
-        var result = new PagedResult<EmployeeViewModel>()
+        var result = new PagedResult<EmployeeDto>()
         {
             Items = items,
-            Page = req.Page,
-            PageSize = req.PageSize,
+            Page = request.Page,
+            PageSize = request.PageSize,
             TotalCount = totalCount
         };
 
-        return Result<PagedResult<EmployeeViewModel>>.Success(result);
+        return Result<PagedResult<EmployeeDto>>.Success(result);
     }
 
-    public async Task<Result<EmployeeViewModel>> GetEmployeeById(int id)
+    public async Task<Result<EmployeeDto>> GetEmployeeById(int id)
     {
         var data = await _context.Employees
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return data is null
-            ? Result<EmployeeViewModel>.Failure("Employee not found", ErrorCode.NotFound)
-            : Result<EmployeeViewModel>.Success(data.ToViewModel());
+            ? Result<EmployeeDto>.Failure("Employee not found", ErrorCode.NotFound)
+            : Result<EmployeeDto>.Success(data.ToEmployeeDto());
     }
 
-    public async Task<Result> UpdateEmployee(int id, EmployeeUpdateDto dto)
+    public async Task<Result> UpdateEmployee(int id, EmployeeUpdateRequest request)
     {
         var employee = await _context.Employees.FirstOrDefaultAsync(x => x.Id == id);
 
         if (employee is null)
             return Result.Failure("Employee not found", ErrorCode.NotFound);
 
-        dto.ToUpdateEntity(employee);
-
+        request.ApplyUpdateEntity(employee);
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
@@ -118,8 +120,8 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
             return Result.Failure("Employee not found", ErrorCode.NotFound);
 
         data.IsDeleted = true;
-        
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 }

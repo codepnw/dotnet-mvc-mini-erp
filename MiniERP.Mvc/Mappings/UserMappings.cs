@@ -1,18 +1,18 @@
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.Entities;
 
 namespace MiniERP.Mvc.Mappings;
 
 public static class UserMappings
 {
-    public static User ToUserEntity(this UserCreateDto dto, string hashedPassword)
+    public static User ToUserEntity(this UserCreateRequest request, string hashedPassword)
     {
         return new User
         {
-            Email = dto.Email,
+            Email = request.Email,
             PasswordHash = hashedPassword,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
         };
     }
 }

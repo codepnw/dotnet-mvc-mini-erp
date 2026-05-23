@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Data;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Models;
 
@@ -8,15 +9,15 @@ namespace MiniERP.Mvc.Services;
 
 public interface IReportService
 {
-    Task<Result<ReportRevenueViewModel>> GetRevenueSummary();
-    Task<Result<List<ReportProductTopSellViewModel>>> GetProductTopSell();
+    Task<Result<ReportRevenueDto>> GetRevenueSummary();
+    Task<Result<List<ReportProductTopSellDto>>> GetProductTopSell();
 }
 
 public class ReportService(AppDbContext context) : IReportService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<ReportRevenueViewModel>> GetRevenueSummary()
+    public async Task<Result<ReportRevenueDto>> GetRevenueSummary()
     {
         var completedOrders = _context.Orders.Where(x => x.Status == OrderStatus.Completed);
         var totalRevenue = await completedOrders.SumAsync(x => x.TotalAmount);
@@ -25,7 +26,7 @@ public class ReportService(AppDbContext context) : IReportService
             ? 0
             : totalRevenue / totalOrders;
 
-        return Result<ReportRevenueViewModel>.Success(new ReportRevenueViewModel
+        return Result<ReportRevenueDto>.Success(new ReportRevenueDto
         {
             TotalRevenue = totalRevenue,
             TotalOrders = totalOrders,
@@ -33,7 +34,7 @@ public class ReportService(AppDbContext context) : IReportService
         });
     }
 
-    public async Task<Result<List<ReportProductTopSellViewModel>>> GetProductTopSell()
+    public async Task<Result<List<ReportProductTopSellDto>>> GetProductTopSell()
     {
         var products = await _context.OrderItems
             .GroupBy(x => new
@@ -41,7 +42,7 @@ public class ReportService(AppDbContext context) : IReportService
                 x.ProductId,
                 x.Product!.Name
             })
-            .Select(x => new ReportProductTopSellViewModel
+            .Select(x => new ReportProductTopSellDto
             {
                 ProductId = x.Key.ProductId,
                 ProductName = x.Key.Name,
@@ -51,6 +52,6 @@ public class ReportService(AppDbContext context) : IReportService
             .Take(5)
             .ToListAsync();
         
-        return Result<List<ReportProductTopSellViewModel>>.Success(products);
+        return Result<List<ReportProductTopSellDto>>.Success(products);
     }
 }

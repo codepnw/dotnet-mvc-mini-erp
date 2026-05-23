@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MiniERP.Mvc.DTOs;
+namespace MiniERP.Mvc.DTOs.Requests;
 
-public class LeaveRequestCreateDto
+public class LeaveRequestCreateRequest
 {
     [Required(ErrorMessage = "Employee id is required")]
     public required int EmployeeId { get; init; }
@@ -19,7 +19,7 @@ public class LeaveRequestCreateDto
     [StringLength(255)] public string? Reason { get; init; }
 };
 
-public class LeaveRequestUpdateDto
+public class LeaveRequestUpdateRequest
 {
     public DateTime? FromDate { get; init; }
     public DateTime? ToDate { get; init; }

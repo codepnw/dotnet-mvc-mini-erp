@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Models;
@@ -17,8 +17,8 @@ namespace MiniERP.Mvc.Services;
 
 public interface IUserService
 {
-    Task<Result<AuthViewModel>> CreateUser(UserCreateDto dto);
-    Task<Result<AuthViewModel>> Login(UserLoginDto dto);
+    Task<Result<AuthViewModel>> CreateUser(UserCreateRequest request);
+    Task<Result<AuthViewModel>> Login(UserLoginRequest request);
 }
 
 public class UserService(AppDbContext context, IConfiguration config) : IUserService
@@ -31,9 +31,9 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
     private readonly double _accessTokenExpireHours = double.Parse(config["Jwt:AccessExpireHours"]!);
     private readonly double _refreshTokenExpireHours = double.Parse(config["Jwt:RefreshExpireHours"]!);
 
-    public async Task<Result<AuthViewModel>> CreateUser(UserCreateDto dto)
+    public async Task<Result<AuthViewModel>> CreateUser(UserCreateRequest request)
     {
-        var normalizedEmail = EmailLowerCase(dto.Email);
+        var normalizedEmail = EmailLowerCase(request.Email);
 
         // Check Email
         var emailExists = await _context.Users.AnyAsync(x => x.Email == normalizedEmail);
@@ -42,14 +42,14 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
             return Result<AuthViewModel>.Failure("Email already exists", ErrorCode.BadRequest);
 
         // Check Matching Password
-        if (dto.Password != dto.ConfirmPassword)
+        if (request.Password != request.ConfirmPassword)
             return Result<AuthViewModel>.Failure("Password not match", ErrorCode.BadRequest);
 
-        var newUser = dto.ToUserEntity("");
+        var newUser = request.ToUserEntity("");
 
         // Hash Password
         var hasher = new PasswordHasher<User>();
-        var hashedPassword = hasher.HashPassword(newUser, dto.Password);
+        var hashedPassword = hasher.HashPassword(newUser, request.Password);
 
         newUser.PasswordHash = hashedPassword;
 
@@ -78,9 +78,9 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
         return Result<AuthViewModel>.Success(response);
     }
 
-    public async Task<Result<AuthViewModel>> Login(UserLoginDto dto)
+    public async Task<Result<AuthViewModel>> Login(UserLoginRequest request)
     {
-        var normalizedEmail = EmailLowerCase(dto.Email);
+        var normalizedEmail = EmailLowerCase(request.Email);
         
         // Find User by Email
         var userData = await _context.Users
@@ -92,7 +92,7 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
 
         // Verify Password
         var hasher = new PasswordHasher<User>();
-        var verifyPassword = hasher.VerifyHashedPassword(userData, userData.PasswordHash, dto.Password);
+        var verifyPassword = hasher.VerifyHashedPassword(userData, userData.PasswordHash, request.Password);
 
         if (verifyPassword != PasswordVerificationResult.Success)
             return Result<AuthViewModel>.Failure("Invalid email or password", ErrorCode.BadRequest);

@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MiniERP.Mvc.DTOs;
+namespace MiniERP.Mvc.DTOs.Requests;
 
-public class ProductCreateDto
+public class ProductCreateRequest
 {
     [Required(ErrorMessage = "Name is required")]
     [StringLength(100)]
@@ -29,7 +29,7 @@ public class ProductCreateDto
     public required int CategoryId { get; init; }
 }
 
-public class ProductUpdateDto
+public class ProductUpdateRequest
 {
     [StringLength(100)] public string? Name { get; init; }
 
@@ -47,7 +47,7 @@ public class ProductUpdateDto
     public int? CategoryId { get; init; }
 }
 
-public class ProductStockAdjustDto
+public class ProductStockAdjustRequest
 {
     [Required(ErrorMessage = "New Stock is required")]
     [Range(1, 10000, ErrorMessage = "Stock must be between 1 and 10,000")]
@@ -58,7 +58,7 @@ public class ProductStockAdjustDto
     public required string Remark { get; init; }
 }
 
-public class ProductStockQuantityDto
+public class ProductStockQuantityRequest
 {
     [Required(ErrorMessage = "Quantity is required")]
     [Range(1, 10000, ErrorMessage = "Quantity must be between 1 and 10,000")]

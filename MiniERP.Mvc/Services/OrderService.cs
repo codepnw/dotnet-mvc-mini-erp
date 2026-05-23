@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Models;
@@ -11,8 +12,8 @@ namespace MiniERP.Mvc.Services;
 
 public interface IOrderService
 {
-    Task<Result> CreateOrder(OrderCreateDto dto);
-    Task<Result<PagedResult<OrderViewModel>>> ListOrders(OrderQuery req);
+    Task<Result> CreateOrder(OrderCreateRequest request);
+    Task<Result<PagedResult<OrderDto>>> ListOrders(OrderQuery request);
     Task<Result<OrderDetailsViewModel>> GetOrderDetails(int orderId);
     Task<Result> CancelOrder(int orderId);    
 }
@@ -21,26 +22,26 @@ public class OrderService(AppDbContext context) : IOrderService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result> CreateOrder(OrderCreateDto dto)
+    public async Task<Result> CreateOrder(OrderCreateRequest request)
     {
-        var productIds = dto.Items.Select(x => x.ProductId).ToList();
+        var productIds = request.Items.Select(x => x.ProductId).ToList();
         var products = await _context.Products
             .Where(x => productIds.Contains(x.Id))
             .ToListAsync();
 
         var order = new Order
         {
-            // TODO: change later
+            // TODO: Get User from Token, Generate OrderNo.
             UserId = 1,
-            // TODO: change later
             OrderNumber = "mock-order-number-0000",
+            
             Status = OrderStatus.Completed,
             CreatedAt = DateTime.UtcNow,
         };
 
         var totalPrice = 0m;
 
-        foreach (var item in dto.Items)
+        foreach (var item in request.Items)
         {
             if (item.Quantity <= 0) return Result.Failure("Quantity must be positive", ErrorCode.BadRequest);
 
@@ -48,17 +49,11 @@ public class OrderService(AppDbContext context) : IOrderService
             var product = products.FirstOrDefault(x => x.Id == item.ProductId);
 
             if (product is null)
-                return Result.Failure(
-                    $"Product {item.ProductId} not found",
-                    ErrorCode.NotFound
-                );
+                return Result.Failure("Product not found", ErrorCode.NotFound);
 
             // Check Product Stock
             if (product.Stock < item.Quantity)
-                return Result.Failure(
-                    $"Product {item.ProductId} not enough stock",
-                    ErrorCode.BadRequest
-                );
+                return Result.Failure("Product not enough stock", ErrorCode.BadRequest);
 
             // Calculate Total Price
             var subTotal = product.Price * item.Quantity;
@@ -95,26 +90,26 @@ public class OrderService(AppDbContext context) : IOrderService
         return Result.Success();
     }
 
-    public async Task<Result<PagedResult<OrderViewModel>>> ListOrders(OrderQuery req)
+    public async Task<Result<PagedResult<OrderDto>>> ListOrders(OrderQuery request)
     {
         var query = _context.Orders.AsNoTracking().AsQueryable();
 
         // Filter Status
-        if (req.Status.HasValue)
+        if (request.Status.HasValue)
         {
-            query = query.Where(x => x.Status == req.Status.Value);
+            query = query.Where(x => x.Status == request.Status.Value);
         }
 
         // Filter From Date
-        if (req.FromDate.HasValue)
+        if (request.FromDate.HasValue)
         {
-            query = query.Where(x => x.CreatedAt >= req.FromDate.Value.Date);
+            query = query.Where(x => x.CreatedAt >= request.FromDate.Value.Date);
         }
 
         // Filter To Date
-        if (req.ToDate.HasValue)
+        if (request.ToDate.HasValue)
         {
-            query = query.Where(x => x.CreatedAt <= req.ToDate.Value.Date);
+            query = query.Where(x => x.CreatedAt <= request.ToDate.Value.Date);
         }
 
         var totalCount = await query.CountAsync();
@@ -122,8 +117,8 @@ public class OrderService(AppDbContext context) : IOrderService
         // List Items
         var items = await query
             .OrderByDescending(x => x.CreatedAt)
-            .Paginate(req.Page, req.PageSize)
-            .Select(x => new OrderViewModel
+            .Paginate(request.Page, request.PageSize)
+            .Select(x => new OrderDto
             {
                 Id = x.Id,
                 OrderNumber = x.OrderNumber,
@@ -133,15 +128,15 @@ public class OrderService(AppDbContext context) : IOrderService
             })
             .ToListAsync();
 
-        var result = new PagedResult<OrderViewModel>()
+        var result = new PagedResult<OrderDto>()
         {
             Items = items,
             TotalCount = totalCount,
-            Page = req.Page,
-            PageSize = req.PageSize,
+            Page = request.Page,
+            PageSize = request.PageSize,
         };
 
-        return Result<PagedResult<OrderViewModel>>.Success(result);
+        return Result<PagedResult<OrderDto>>.Success(result);
     }
 
     public async Task<Result<OrderDetailsViewModel>> GetOrderDetails(int orderId)
@@ -191,9 +186,11 @@ public class OrderService(AppDbContext context) : IOrderService
 
         if (order is null)
             return Result.Failure("Order not found", ErrorCode.NotFound);
+        
         // Check Status Cancelled
         if (order.Status == OrderStatus.Cancelled)
             return Result.Failure("Order already cancelled", ErrorCode.BadRequest);
+        
         // Check Status Completed
         if (order.Status != OrderStatus.Completed)
             return Result.Failure("Only completed orders can be cancelled", ErrorCode.BadRequest);
@@ -220,8 +217,8 @@ public class OrderService(AppDbContext context) : IOrderService
 
         // Update Order Status
         order.Status = OrderStatus.Cancelled;
-
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 }

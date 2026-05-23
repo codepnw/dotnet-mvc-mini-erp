@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
@@ -12,10 +13,10 @@ namespace MiniERP.Mvc.Services;
 
 public interface ICategoryService
 {
-    Task<Result> Create(CategoryCreateDto dto);
-    Task<Result<PagedResult<CategoryViewModel>>> ListCategories(CategoryQuery req);
-    Task<Result<CategoryViewModel>> GetCategory(int id);
-    Task<Result> UpdateCategory(int id, CategoryUpdateDto dto);
+    Task<Result> Create(CategoryCreateRequest request);
+    Task<Result<PagedResult<CategoryDto>>> ListCategories(CategoryQuery request);
+    Task<Result<CategoryDto>> GetCategory(int id);
+    Task<Result> UpdateCategory(int id, CategoryUpdateRequest request);
     Task<Result> DeleteCategory(int id);
 }
 
@@ -23,19 +24,19 @@ public class CategoryService(AppDbContext context) : ICategoryService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result> Create(CategoryCreateDto dto)
+    public async Task<Result> Create(CategoryCreateRequest request)
     {
-        var exists = await _context.Categories.AnyAsync(x => x.Title == dto.Title);
+        var exists = await _context.Categories.AnyAsync(x => x.Title == request.Title);
 
         if (exists) return Result.Failure("Category already exists", ErrorCode.BadRequest);
 
-        _context.Categories.Add(dto.ToEntity());
-        
+        _context.Categories.Add(request.ToEntity());
         await _context.SaveChangesAsync();
+        
         return  Result.Success();
     }
 
-    public async Task<Result<PagedResult<CategoryViewModel>>> ListCategories(CategoryQuery req)
+    public async Task<Result<PagedResult<CategoryDto>>> ListCategories(CategoryQuery req)
     {
         var query = _context.Categories.AsNoTracking().AsQueryable();
 
@@ -51,7 +52,7 @@ public class CategoryService(AppDbContext context) : ICategoryService
         // List Items
         var items = await query
             .Paginate(req.Page, req.PageSize)
-            .Select(x => new CategoryViewModel
+            .Select(x => new CategoryDto
             {
                 Id = x.Id,
                 Title = x.Title,
@@ -59,7 +60,7 @@ public class CategoryService(AppDbContext context) : ICategoryService
             })
             .ToListAsync();
 
-        var result = new PagedResult<CategoryViewModel>()
+        var result = new PagedResult<CategoryDto>()
         {
             Items = items,
             Page = req.Page,
@@ -67,39 +68,39 @@ public class CategoryService(AppDbContext context) : ICategoryService
             TotalCount = totalCount
         };
 
-        return Result<PagedResult<CategoryViewModel>>.Success(result);
+        return Result<PagedResult<CategoryDto>>.Success(result);
     }
 
-    public async Task<Result<CategoryViewModel>> GetCategory(int id)
+    public async Task<Result<CategoryDto>> GetCategory(int id)
     {
         var category = await _context.Categories
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return category is null
-            ? Result<CategoryViewModel>.Failure("Category not found", ErrorCode.NotFound)
-            : Result<CategoryViewModel>.Success(category.ToViewModel());
+            ? Result<CategoryDto>.Failure("Category not found", ErrorCode.NotFound)
+            : Result<CategoryDto>.Success(category.ToCategoryDto());
     }
 
-    public async Task<Result> UpdateCategory(int id, CategoryUpdateDto dto)
+    public async Task<Result> UpdateCategory(int id, CategoryUpdateRequest request)
     {
         var result = await FindCategoryById(id);
         var category = result.Data;
 
         if (category is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
-        if (!string.IsNullOrEmpty(dto.Title))
+        if (!string.IsNullOrEmpty(request.Title))
         {
             var titleExists = await _context.Categories
-                .AnyAsync(x => x.Title == dto.Title && x.Id != id);
+                .AnyAsync(x => x.Title == request.Title && x.Id != id);
 
             if (titleExists) return Result.Failure("Title already exists", ErrorCode.BadRequest);
         }
 
         // Update Category
-        dto.ApplyUpdate(category);
-
+        request.ApplyUpdate(category);
         await _context.SaveChangesAsync();
+        
         return  Result.Success();
     }
 
@@ -112,8 +113,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
         // Soft Delete Category
         category.IsDeleted = true;
-
         await _context.SaveChangesAsync();
+        
         return  Result.Success();
     }
 

@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using MiniERP.Mvc.Entities;
 
-namespace MiniERP.Mvc.DTOs;
+namespace MiniERP.Mvc.DTOs.Requests;
 
-public class StockMovementDto
+public class StockMovementRequest
 {
     [Required] public required int ProductId { get; init; }
 

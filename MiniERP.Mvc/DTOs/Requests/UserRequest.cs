@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MiniERP.Mvc.DTOs;
+namespace MiniERP.Mvc.DTOs.Requests;
 
-public class UserCreateDto
+public class UserCreateRequest
 {
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid Email Address")]
@@ -21,7 +21,7 @@ public class UserCreateDto
     public required string LastName { get; init; }
 }
 
-public class UserLoginDto
+public class UserLoginRequest
 {
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid Email Address")]

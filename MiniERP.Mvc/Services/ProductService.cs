@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
@@ -13,37 +14,37 @@ namespace MiniERP.Mvc.Services;
 
 public interface IProductService
 {
-    Task<Result<PagedResult<ProductViewModel>>> ListProducts(ProductQuery req);
-    Task<Result<ProductViewModel>> CreateProduct(ProductCreateDto dto);
-    Task<Result<ProductViewModel>> GetProduct(int id);
-    Task<Result<List<ProductViewModel>>> GetProductsLowStock();
-    Task<Result> UpdateProduct(int id, ProductUpdateDto dto);
+    Task<Result<PagedResult<ProductDto>>> ListProducts(ProductQuery request);
+    Task<Result<ProductDto>> CreateProduct(ProductCreateRequest request);
+    Task<Result<ProductDto>> GetProduct(int id);
+    Task<Result<List<ProductDto>>> GetProductsLowStock();
+    Task<Result> UpdateProduct(int id, ProductUpdateRequest request);
     Task<Result> DeleteProduct(int id);
 
     // ----------- Stock Movement ---------------
-    Task<Result> IncreaseStock(int productId, ProductStockQuantityDto dto);
-    Task<Result> DecreaseStock(int productId, ProductStockQuantityDto dto);
-    Task<Result> AdjustStock(int productId, ProductStockAdjustDto dto);
+    Task<Result> IncreaseStock(int productId, ProductStockQuantityRequest request);
+    Task<Result> DecreaseStock(int productId, ProductStockQuantityRequest request);
+    Task<Result> AdjustStock(int productId, ProductStockAdjustRequest request);
 }
 
 public class ProductService(AppDbContext context) : IProductService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<PagedResult<ProductViewModel>>> ListProducts(ProductQuery req)
+    public async Task<Result<PagedResult<ProductDto>>> ListProducts(ProductQuery request)
     {
         var query = _context.Products.AsQueryable();
 
         // Search name
-        if (!string.IsNullOrWhiteSpace(req.Name))
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
-            query = query.Where(x => x.Name.Contains(req.Name));
+            query = query.Where(x => x.Name.Contains(request.Name));
         }
 
         // Filter category id
-        if (req.CategoryId.HasValue)
+        if (request.CategoryId.HasValue)
         {
-            query = query.Where(x => x.CategoryId == req.CategoryId.Value);
+            query = query.Where(x => x.CategoryId == request.CategoryId.Value);
         }
 
         // Total count
@@ -51,8 +52,8 @@ public class ProductService(AppDbContext context) : IProductService
 
         // List Items
         var items = await query
-            .Paginate(req.Page, req.PageSize)
-            .Select(x => new ProductViewModel
+            .Paginate(request.Page, request.PageSize)
+            .Select(x => new ProductDto
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -65,32 +66,32 @@ public class ProductService(AppDbContext context) : IProductService
             .ToListAsync();
 
         // Response Result
-        var result = new PagedResult<ProductViewModel>()
+        var result = new PagedResult<ProductDto>()
         {
-            Page = req.Page,
-            PageSize = req.PageSize,
+            Page = request.Page,
+            PageSize = request.PageSize,
             TotalCount = totalCount,
             Items = items
         };
 
-        return Result<PagedResult<ProductViewModel>>.Success(result);
+        return Result<PagedResult<ProductDto>>.Success(result);
     }
 
-    public async Task<Result<ProductViewModel>> CreateProduct(ProductCreateDto dto)
+    public async Task<Result<ProductDto>> CreateProduct(ProductCreateRequest request)
     {
-        var exists = await _context.Products.AnyAsync(x => x.Name == dto.Name);
+        var exists = await _context.Products.AnyAsync(x => x.Name == request.Name);
 
-        if (exists) return Result<ProductViewModel>.Failure("Name already exists", ErrorCode.BadRequest);
+        if (exists) return Result<ProductDto>.Failure("Name already exists", ErrorCode.BadRequest);
 
-        var product = dto.ToEntity();
+        var product = request.ToEntity();
         // Add Product
         _context.Add(product);
-
         await _context.SaveChangesAsync();
-        return Result<ProductViewModel>.Success(product.ToViewModel());
+        
+        return Result<ProductDto>.Success(product.ToProductDto());
     }
 
-    public async Task<Result<ProductViewModel>> GetProduct(int id)
+    public async Task<Result<ProductDto>> GetProduct(int id)
     {
         var product = await _context.Products
             .AsNoTracking()
@@ -98,15 +99,15 @@ public class ProductService(AppDbContext context) : IProductService
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return product is null
-            ? Result<ProductViewModel>.Failure("Product not found", ErrorCode.NotFound)
-            : Result<ProductViewModel>.Success(product.ToViewModel());
+            ? Result<ProductDto>.Failure("Product not found", ErrorCode.NotFound)
+            : Result<ProductDto>.Success(product.ToProductDto());
     }
 
-    public async Task<Result<List<ProductViewModel>>> GetProductsLowStock()
+    public async Task<Result<List<ProductDto>>> GetProductsLowStock()
     {
         var products = await _context.Products
             .AsNoTracking().Where(x => x.Stock <= x.MinimumStock)
-            .Select(x => new ProductViewModel
+            .Select(x => new ProductDto
             {
                 Id = x.Id,
                 Name = x.Name,
@@ -117,28 +118,28 @@ public class ProductService(AppDbContext context) : IProductService
             })
             .ToListAsync();
 
-        return Result<List<ProductViewModel>>.Success(products);
+        return Result<List<ProductDto>>.Success(products);
     }
 
-    public async Task<Result> UpdateProduct(int id, ProductUpdateDto dto)
+    public async Task<Result> UpdateProduct(int id, ProductUpdateRequest request)
     {
         var result = await FindProductById(id);
         var product = result.Data;
 
         if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
-        if (!string.IsNullOrWhiteSpace(dto.Name))
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
             var nameExists = await _context.Products
-                .AnyAsync(x => x.Name == dto.Name && x.Id != id);
+                .AnyAsync(x => x.Name == request.Name && x.Id != id);
 
             if (nameExists) return Result.Failure("Name already exists", ErrorCode.BadRequest);
         }
 
         // Update Product
-        dto.ApplyUpdate(product);
-
+        request.ApplyUpdate(product);
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
@@ -151,8 +152,8 @@ public class ProductService(AppDbContext context) : IProductService
 
         // Soft Delete Product
         product.IsDeleted = true;
-
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
@@ -167,23 +168,23 @@ public class ProductService(AppDbContext context) : IProductService
 
     // ------------------------- Stock Movement ---------------------------
 
-    public async Task<Result> IncreaseStock(int productId, ProductStockQuantityDto dto)
+    public async Task<Result> IncreaseStock(int productId, ProductStockQuantityRequest request)
     {
         var result = await FindProductById(productId);
         var product = result.Data;
 
         if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
-        if (dto.Quantity <= 0) return Result.Failure("Increase stock greater than zero", ErrorCode.BadRequest);
+        if (request.Quantity <= 0) return Result.Failure("Increase stock greater than zero", ErrorCode.BadRequest);
 
         // Increase Stock
-        product.Stock += dto.Quantity;
+        product.Stock += request.Quantity;
 
         // Add Stock Movement
         _context.StockMovements.Add(new StockMovement
         {
             ProductId = product.Id,
-            Quantity = dto.Quantity,
+            Quantity = request.Quantity,
             MovementType = StockMovementType.In
         });
 
@@ -191,7 +192,7 @@ public class ProductService(AppDbContext context) : IProductService
         return Result.Success();
     }
 
-    public async Task<Result> DecreaseStock(int productId, ProductStockQuantityDto dto)
+    public async Task<Result> DecreaseStock(int productId, ProductStockQuantityRequest request)
     {
         var result = await FindProductById(productId);
         var product = result.Data;
@@ -199,16 +200,16 @@ public class ProductService(AppDbContext context) : IProductService
         if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
         // Check Stock
-        if (product.Stock < dto.Quantity) return Result.Failure("Stock not Enough", ErrorCode.BadRequest);
+        if (product.Stock < request.Quantity) return Result.Failure("Stock not Enough", ErrorCode.BadRequest);
 
         // Decrease Stock
-        product.Stock -= dto.Quantity;
+        product.Stock -= request.Quantity;
 
         // Add Stock Movement
         _context.StockMovements.Add(new StockMovement
         {
             ProductId = product.Id,
-            Quantity = -dto.Quantity,
+            Quantity = -request.Quantity,
             MovementType = StockMovementType.Out
         });
 
@@ -216,17 +217,17 @@ public class ProductService(AppDbContext context) : IProductService
         return Result.Success();
     }
 
-    public async Task<Result> AdjustStock(int productId, ProductStockAdjustDto dto)
+    public async Task<Result> AdjustStock(int productId, ProductStockAdjustRequest request)
     {
         var result = await FindProductById(productId);
         var product = result.Data;
 
         if (product is null) return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
-        var diff = dto.NewStock - product.Stock;
+        var diff = request.NewStock - product.Stock;
 
         // Update Stock
-        product.Stock = dto.NewStock;
+        product.Stock = request.NewStock;
 
         // Add Stock Movement
         _context.StockMovements.Add(new StockMovement
@@ -234,7 +235,7 @@ public class ProductService(AppDbContext context) : IProductService
             ProductId = product.Id,
             Quantity = diff,
             MovementType = StockMovementType.Adjust,
-            Remark = dto.Remark
+            Remark = request.Remark
         });
 
         await _context.SaveChangesAsync();

@@ -1,4 +1,5 @@
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Models;
 
@@ -6,23 +7,23 @@ namespace MiniERP.Mvc.Mappings;
 
 public static class CategoryMapping
 {
-    public static Category ToEntity(this CategoryCreateDto dto) => new()
+    public static Category ToEntity(this CategoryCreateRequest request) => new()
     {
-        Title = dto.Title,
-        Description = dto.Description ?? "",
+        Title = request.Title,
+        Description = request.Description ?? "",
     };
 
-    public static CategoryViewModel ToViewModel(this Category category) => new()
+    public static CategoryDto ToCategoryDto(this Category category) => new()
     {
         Id = category.Id,
         Title = category.Title,
         Description = category.Description,
     };
 
-    public static void ApplyUpdate(this CategoryUpdateDto dto, Category category)
+    public static void ApplyUpdate(this CategoryUpdateRequest request, Category category)
     {
-        category.Title = dto.Title ?? category.Title;
-        category.Description = dto.Description ?? category.Description;
+        category.Title = request.Title ?? category.Title;
+        category.Description = request.Description ?? category.Description;
         category.UpdatedAt = DateTime.UtcNow;
     }
 }

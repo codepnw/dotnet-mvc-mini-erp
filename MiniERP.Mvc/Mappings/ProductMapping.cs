@@ -1,4 +1,5 @@
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Models;
 
@@ -6,17 +7,17 @@ namespace MiniERP.Mvc.Mappings;
 
 public static class ProductMapping
 {
-    public static Product ToEntity(this ProductCreateDto dto) => new()
+    public static Product ToEntity(this ProductCreateRequest request) => new()
     {
-        Name = dto.Name,
-        Sku = dto.Sku,
-        Price = dto.Price,
-        Stock = dto.Stock,
-        MinimumStock = dto.MinimumStock,
-        CategoryId = dto.CategoryId,
+        Name = request.Name,
+        Sku = request.Sku,
+        Price = request.Price,
+        Stock = request.Stock,
+        MinimumStock = request.MinimumStock,
+        CategoryId = request.CategoryId,
     };
 
-    public static ProductViewModel ToViewModel(this Product product) => new()
+    public static ProductDto ToProductDto(this Product product) => new()
     {
         Id = product.Id,
         Name = product.Name,
@@ -29,14 +30,14 @@ public static class ProductMapping
         UpdatedAt = product.UpdatedAt,
     };
 
-    public static void ApplyUpdate(this ProductUpdateDto dto, Product product)
+    public static void ApplyUpdate(this ProductUpdateRequest request, Product product)
     {
-        product.Name = dto.Name ?? product.Name;
-        product.Sku = dto.Sku ?? product.Sku;
-        product.Price = dto.Price ?? product.Price;
-        product.Stock = dto.Stock ?? product.Stock;
-        product.MinimumStock = dto.MinimumStock ?? product.MinimumStock;
-        product.CategoryId = dto.CategoryId ?? product.CategoryId;
+        product.Name = request.Name ?? product.Name;
+        product.Sku = request.Sku ?? product.Sku;
+        product.Price = request.Price ?? product.Price;
+        product.Stock = request.Stock ?? product.Stock;
+        product.MinimumStock = request.MinimumStock ?? product.MinimumStock;
+        product.CategoryId = request.CategoryId ?? product.CategoryId;
 
         product.UpdatedAt = DateTime.UtcNow;
     }

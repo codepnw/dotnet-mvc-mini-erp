@@ -1,5 +1,6 @@
 using System;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Models;
 
@@ -7,30 +8,52 @@ namespace MiniERP.Mvc.Mappings;
 
 public static class EmployeeMapping
 {
-    public static Employee ToCreateEntity(this EmployeeCreateDto dto) => new()
+    public static Employee ToCreateEntity(this EmployeeCreateRequest request) => new()
     {
-        FirstName = dto.FirstName,
-        LastName = dto.LastName,
-        CitizenId = dto.CitizenId,
-        Salary = dto.Salary,
-        DepartmentId = dto.DepartmentId
+        FirstName = request.FirstName,
+        LastName = request.LastName,
+        CitizenId = request.CitizenId,
+        Salary = request.Salary,
+        DepartmentId = request.DepartmentId
     };
 
-    public static void ToUpdateEntity(this EmployeeUpdateDto dto, Employee emp)
+    public static void ApplyUpdateEntity(this EmployeeUpdateRequest request, Employee emp)
     {
-        emp.FirstName = dto.FirstName ?? emp.FirstName;
-        emp.LastName = dto.LastName ?? emp.LastName;
-        emp.Salary = dto.Salary ?? emp.Salary;
-        emp.DepartmentId = dto.DepartmentId ?? emp.DepartmentId;
+        emp.FirstName = request.FirstName ?? emp.FirstName;
+        emp.LastName = request.LastName ?? emp.LastName;
+        emp.Salary = request.Salary ?? emp.Salary;
+        emp.DepartmentId = request.DepartmentId ?? emp.DepartmentId;
         emp.UpdatedAt = DateTime.UtcNow;
     }
 
-    public static EmployeeViewModel ToViewModel(this Employee emp) => new()
+    public static EmployeeDto ToEmployeeDto(this Employee emp) => new()
     {
         Id = emp.Id,
         FirstName = emp.FirstName,
         LastName = emp.LastName,
-        SalaryText = emp.Salary.ToString("N2"),
+        Salary = emp.Salary,
+        DepartmentId = emp.DepartmentId,
         DepartmentTitle = emp.Department != null ? emp.Department.Title : "N/A"
+    };
+
+    // public static EmployeeControllerEditVm ToViewController(this EmployeeViewModel emp) => new()
+    // {
+    //     Id = emp.Id,
+    //     FirstName = emp.FirstName,
+    //     LastName = emp.LastName,
+    //
+    //     // TODO: type mismatch
+    //     // SalaryText = emp.SalaryText.ToString(),
+    //     // DepartmentTitle = emp.DepartmentTitle
+    // };
+
+    public static EmployeeUpdateRequest ToEditDto(this EmployeeControllerEditVm vm) => new()
+    {
+        FirstName = vm.FirstName,
+        LastName = vm.LastName,
+        Salary = vm.Salary,
+
+        // TODO: type mismatch
+        // DepartmentId = vm.DepartmentTitle
     };
 }

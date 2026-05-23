@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Exceptions;
 using MiniERP.Mvc.Extensions;
@@ -19,10 +20,10 @@ namespace MiniERP.Mvc.Services;
 
 public interface IDepartmentService
 {
-    Task<Result<PagedResult<DepartmentViewModel>>> ListDepartments(DepartmentQuery req);
-    Task<Result<DepartmentViewModel>> GetDepartment(int id);
-    Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDto dto);
-    Task<Result> EditDepartment(int id, DepartmentDto dto);
+    Task<Result<PagedResult<DepartmentDto>>> ListDepartments(DepartmentQuery request);
+    Task<Result<DepartmentDto>> GetDepartment(int id);
+    Task<Result<DepartmentDto>> CreateDepartment(DepartmentRequest request);
+    Task<Result> EditDepartment(int id, DepartmentRequest request);
     Task<Result> DeleteDepartment(int id);
 }
 
@@ -30,14 +31,14 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<PagedResult<DepartmentViewModel>>> ListDepartments(DepartmentQuery req)
+    public async Task<Result<PagedResult<DepartmentDto>>> ListDepartments(DepartmentQuery request)
     {
         var query = _context.Departments.AsNoTracking().AsQueryable();
 
         // Search name
-        if (!string.IsNullOrEmpty(req.Search))
+        if (!string.IsNullOrEmpty(request.Search))
         {
-            query = query.Where(x => x.Title.Contains(req.Search));
+            query = query.Where(x => x.Title.Contains(request.Search));
         }
 
         // Total Count
@@ -45,8 +46,8 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
         // List Items
         var items = await query
-            .Paginate(req.Page, req.PageSize)
-            .Select(x => new DepartmentViewModel
+            .Paginate(request.Page, request.PageSize)
+            .Select(x => new DepartmentDto
             {
                 Id = x.Id,
                 Title = x.Title,
@@ -54,44 +55,44 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
             .ToListAsync();
 
         // Response Result
-        var result = new PagedResult<DepartmentViewModel>()
+        var result = new PagedResult<DepartmentDto>()
         {
             Items = items,
             TotalCount = totalCount,
-            Page = req.Page,
-            PageSize = req.PageSize
+            Page = request.Page,
+            PageSize = request.PageSize
         };
 
-        return Result<PagedResult<DepartmentViewModel>>.Success(result);
+        return Result<PagedResult<DepartmentDto>>.Success(result);
     }
 
-    public async Task<Result<DepartmentViewModel>> GetDepartment(int id)
+    public async Task<Result<DepartmentDto>> GetDepartment(int id)
     {
         var department = await _context.Departments
             .AsNoTracking()
             .FirstOrDefaultAsync(d => d.Id == id);
 
         return department is null
-            ? Result<DepartmentViewModel>.Failure("Department not found", ErrorCode.NotFound)
-            : Result<DepartmentViewModel>.Success(department.ToViewModel());
+            ? Result<DepartmentDto>.Failure("Department not found", ErrorCode.NotFound)
+            : Result<DepartmentDto>.Success(department.ToDepartmentDto());
     }
 
-    public async Task<Result<DepartmentViewModel>> CreateDepartment(DepartmentDto dto)
+    public async Task<Result<DepartmentDto>> CreateDepartment(DepartmentRequest request)
     {
-        var exists = await _context.Departments.AnyAsync(d => d.Title == dto.Title);
+        var exists = await _context.Departments.AnyAsync(d => d.Title == request.Title);
 
         if (exists)
-            return Result<DepartmentViewModel>.Failure("Title already exists", ErrorCode.Conflict);
+            return Result<DepartmentDto>.Failure("Title already exists", ErrorCode.Conflict);
 
-        var department = dto.ToEntity();
+        var department = request.ToEntity();
 
         _context.Departments.Add(department);
-
         await _context.SaveChangesAsync();
-        return Result<DepartmentViewModel>.Success(department.ToViewModel());
+        
+        return Result<DepartmentDto>.Success(department.ToDepartmentDto());
     }
 
-    public async Task<Result> EditDepartment(int id, DepartmentDto dto)
+    public async Task<Result> EditDepartment(int id, DepartmentRequest request)
     {
         var department = await _context.Departments.FirstOrDefaultAsync(d => d.Id == id);
 
@@ -100,16 +101,16 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
         var exists = await _context.Departments.AnyAsync(d =>
             d.Id != id &&
-            d.Title == dto.Title
+            d.Title == request.Title
         );
 
         if (exists)
             return Result.Failure("Title already exists", ErrorCode.Conflict);
 
-        department.Title = dto.Title;
+        department.Title = request.Title;
         department.UpdatedAt = DateTime.UtcNow;
-
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
@@ -122,8 +123,8 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
         department.IsDeleted = true;
         department.UpdatedAt = DateTime.UtcNow;
-
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 }

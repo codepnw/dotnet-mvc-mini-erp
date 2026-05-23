@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MiniERP.Mvc.DTOs;
+namespace MiniERP.Mvc.DTOs.Requests;
 
-public class EmployeeCreateDto
+public class EmployeeCreateRequest
 {
     [Required(ErrorMessage = "Firstname is required"), StringLength(100)]
     public required string FirstName { get; init; }
@@ -20,7 +20,7 @@ public class EmployeeCreateDto
     public required int DepartmentId { get; init; }
 };
 
-public class EmployeeUpdateDto
+public class EmployeeUpdateRequest
 {
     [StringLength(100)] public string? FirstName { get; init; }
 

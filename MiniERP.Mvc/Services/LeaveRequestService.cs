@@ -2,7 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
@@ -12,10 +13,10 @@ namespace MiniERP.Mvc.Services;
 
 public interface ILeaveRequestService
 {
-    Task<Result> CreateLeaveRequest(LeaveRequestCreateDto dto);
-    Task<Result<LeaveRequestViewModel>> GetLeaveRequest(int id);
-    Task<Result<PagedResult<LeaveRequestViewModel>>> ListLeaveRequests(LeaveRequestQuery req);
-    Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDto dto);
+    Task<Result> CreateLeaveRequest(LeaveRequestCreateRequest request);
+    Task<Result<LeaveRequestDto>> GetLeaveRequest(int id);
+    Task<Result<PagedResult<LeaveRequestDto>>> ListLeaveRequests(LeaveRequestQuery req);
+    Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateRequest request);
     Task<Result> UpdateLeaveRequestStatus(int id, LeaveStatus status);
     Task<Result> DeleteLeaveRequest(int id);
 }
@@ -24,44 +25,44 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result> CreateLeaveRequest(LeaveRequestCreateDto dto)
+    public async Task<Result> CreateLeaveRequest(LeaveRequestCreateRequest request)
     {
-        if (dto.FromDate > dto.ToDate)
+        if (request.FromDate > request.ToDate)
             return Result.Failure("Invalid date range", ErrorCode.BadRequest);
 
         var empExists = await _context.Employees
             .AsNoTracking()
-            .AnyAsync(x => x.Id == dto.EmployeeId);
+            .AnyAsync(x => x.Id == request.EmployeeId);
 
         if (!empExists)
             return Result.Failure("Employee not found", ErrorCode.NotFound);
 
         var typeExists = await _context.LeaveTypes
             .AsNoTracking()
-            .AnyAsync(x => x.Id == dto.LeaveTypeId);
+            .AnyAsync(x => x.Id == request.LeaveTypeId);
 
         if (!typeExists)
             return Result.Failure("Leave type not found", ErrorCode.NotFound);
 
         var overlap = await _context.LeaveRequests
             .AnyAsync(x =>
-                x.EmployeeId == dto.EmployeeId &&
-                dto.FromDate <= x.ToDate &&
-                dto.ToDate >= x.FromDate
+                x.EmployeeId == request.EmployeeId &&
+                request.FromDate <= x.ToDate &&
+                request.ToDate >= x.FromDate
             );
 
         if (overlap)
             return Result.Failure("Leve request overlaps", ErrorCode.BadRequest);
 
-        var reqEntity = dto.ToLeaveRequestEntity(LeaveStatus.Pending);
+        var reqEntity = request.ToLeaveRequestEntity(LeaveStatus.Pending);
 
         _context.LeaveRequests.Add(reqEntity);
-
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
-    public async Task<Result<LeaveRequestViewModel>> GetLeaveRequest(int id)
+    public async Task<Result<LeaveRequestDto>> GetLeaveRequest(int id)
     {
         var data = await _context.LeaveRequests
             .AsNoTracking()
@@ -70,11 +71,11 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return data is null
-            ? Result<LeaveRequestViewModel>.Failure("Leave request not found", ErrorCode.NotFound)
-            : Result<LeaveRequestViewModel>.Success(data.ToLeaveRequestViewModel());
+            ? Result<LeaveRequestDto>.Failure("Leave request not found", ErrorCode.NotFound)
+            : Result<LeaveRequestDto>.Success(data.ToLeaveRequestDto());
     }
 
-    public async Task<Result<PagedResult<LeaveRequestViewModel>>> ListLeaveRequests(LeaveRequestQuery req)
+    public async Task<Result<PagedResult<LeaveRequestDto>>> ListLeaveRequests(LeaveRequestQuery req)
     {
         var query = _context.LeaveRequests.AsNoTracking().AsQueryable();
 
@@ -108,7 +109,7 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
         var items = await query
             .OrderBy(x => x.Id)
             .Paginate(req.Page, req.PageSize)
-            .Select(x => new LeaveRequestViewModel
+            .Select(x => new LeaveRequestDto
             {
                 Id = x.Id,
                 FirstName = x.Employee!.FirstName,
@@ -123,7 +124,7 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             .ToListAsync();
 
         // Response Result
-        var result = new PagedResult<LeaveRequestViewModel>
+        var result = new PagedResult<LeaveRequestDto>
         {
             Items = items,
             Page = req.Page,
@@ -131,10 +132,10 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             TotalCount = totalCount
         };
 
-        return Result<PagedResult<LeaveRequestViewModel>>.Success(result);
+        return Result<PagedResult<LeaveRequestDto>>.Success(result);
     }
 
-    public async Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateDto dto)
+    public async Task<Result> UpdateLeaveRequest(int id, LeaveRequestUpdateRequest request)
     {
         var result = await FindLeaveRequestById(id);
         var data = result.Data;
@@ -146,18 +147,18 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             .AnyAsync(x =>
                 x.Id != id &&
                 x.EmployeeId == data.EmployeeId &&
-                dto.FromDate <= x.ToDate &&
-                dto.ToDate >= x.FromDate
+                request.FromDate <= x.ToDate &&
+                request.ToDate >= x.FromDate
             );
         if (overlap)
             return Result.Failure("Leave request overlaps", ErrorCode.BadRequest);
 
-        dto.ApplyUpdateLeaveRequest(data);
+        request.ApplyUpdateLeaveRequest(data);
 
         data.TotalDays = (data.ToDate.Date - data.FromDate.Date).Days + 1;
         data.UpdatedAt = DateTime.UtcNow;
-
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
@@ -174,8 +175,8 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
 
         data.Status = status;
         data.UpdatedAt = DateTime.UtcNow;
-        
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
@@ -188,8 +189,8 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
             return Result.Failure(result.ErrorMessage!, result.ErrorCode);
 
         data.IsDeleted = true;
-        
         await _context.SaveChangesAsync();
+        
         return Result.Success();
     }
 
