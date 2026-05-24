@@ -2,8 +2,9 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Mvc.Common.Queries;
-using MiniERP.Mvc.DTOs;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.Mappings;
+using MiniERP.Mvc.ViewModels;
 using MiniERP.Mvc.Services;
 
 namespace MiniERP.Mvc.Controllers
@@ -17,14 +18,19 @@ namespace MiniERP.Mvc.Controllers
         {
             var result = await _service.ListEmployees(req);
 
-            if (!result.IsFailure) return View(result.Data);
+            var vm = new EmployeeIndexVm
+            {
+                Query = req,
+            };
 
-            ModelState.AddModelError("", result.ErrorMessage!);
-            return View(req);
+            if (result.IsFailure)
+            {
+                vm.ErrorMessage = result.ErrorMessage;
+                return View(vm);
+            }
 
-            // return result.IsFailure
-            //     ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
-            //     : View(result.Data);
+            vm.Employees = result.Data!;
+            return View(vm);
         }
 
         [HttpGet]
@@ -32,9 +38,16 @@ namespace MiniERP.Mvc.Controllers
         {
             var result = await _service.GetEmployeeById(id);
 
-            return result.IsFailure
-                ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
-                : View(result.Data);
+            var vm = new EmployeeDetailsVm();
+
+            if (result.IsFailure)
+            {
+                vm.ErrorMessage = result.ErrorMessage;
+                return View(vm);
+            }
+
+            vm.Employee = result.Data!;
+            return View(vm);
         }
 
         [HttpGet]
@@ -44,36 +57,51 @@ namespace MiniERP.Mvc.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(EmployeeCreateDto dto)
+        public async Task<IActionResult> Create(EmployeeCreateVm vm)
         {
-            if (!ModelState.IsValid) return View(dto);
-            
-            var result = await _service.CreateEmployee(dto);
+            if (!ModelState.IsValid) return View(vm);
 
-            if (!result.IsFailure) return RedirectToAction("Index");
+            var result = await _service.CreateEmployee(vm.ToCreateRequest());
 
-            ModelState.AddModelError("", result.ErrorMessage!);
-            return View(dto);
+            if (result.IsFailure)
+            {
+                ModelState.AddModelError("", result.ErrorMessage!);
+                return View(vm);
+            }
+
+            return RedirectToAction("Index");
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var result = await _service.GetEmployeeById(id);
+            
+            var vm = new EmployeeEditVm();
 
-            return result.IsFailure
-                ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
-                : View(result.Data);
+            if (result.IsFailure)
+            {
+                vm.ErrorMessage = result.ErrorMessage;
+                return View(vm);
+            }
+
+            return View(result.Data!.ToEditViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, EmployeeUpdateDto dto)
+        public async Task<IActionResult> Edit(int id, EmployeeEditVm vm)
         {
-            var result = await _service.UpdateEmployee(id, dto);
+            if (!ModelState.IsValid) return View(vm);
 
-            return result.IsFailure
-                ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
-                : RedirectToAction("Index");
+            var result = await _service.UpdateEmployee(id, vm.ToEditRequest());
+
+            if (result.IsFailure)
+            {
+                ModelState.AddModelError("", result.ErrorMessage!);
+                return View(vm);
+            }
+
+            return RedirectToAction("Index");
         }
 
         [HttpPost]

@@ -6,7 +6,7 @@ using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
@@ -15,7 +15,7 @@ public interface IEmployeeService
     Task<Result<EmployeeDto>> CreateEmployee(EmployeeCreateRequest request);
     Task<Result<PagedResult<EmployeeDto>>> ListEmployees(EmployeeQuery request);
     Task<Result<EmployeeDto>> GetEmployeeById(int id);
-    Task<Result> UpdateEmployee(int id, EmployeeUpdateRequest request);
+    Task<Result> UpdateEmployee(int id, EmployeeEditRequest request);
     Task<Result> DeleteEmployee(int id);
 }
 
@@ -37,7 +37,7 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
         _context.Employees.Add(employee);
         await _context.SaveChangesAsync();
         
-        return Result<EmployeeDto>.Success(employee.ToEmployeeDto());
+        return Result<EmployeeDto>.Success(employee.ToResponseDto());
     }
 
     public async Task<Result<PagedResult<EmployeeDto>>> ListEmployees(EmployeeQuery request)
@@ -92,21 +92,22 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
     {
         var data = await _context.Employees
             .AsNoTracking()
+            .Include(x => x.Department)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         return data is null
             ? Result<EmployeeDto>.Failure("Employee not found", ErrorCode.NotFound)
-            : Result<EmployeeDto>.Success(data.ToEmployeeDto());
+            : Result<EmployeeDto>.Success(data.ToResponseDto());
     }
 
-    public async Task<Result> UpdateEmployee(int id, EmployeeUpdateRequest request)
+    public async Task<Result> UpdateEmployee(int id, EmployeeEditRequest request)
     {
         var employee = await _context.Employees.FirstOrDefaultAsync(x => x.Id == id);
 
         if (employee is null)
             return Result.Failure("Employee not found", ErrorCode.NotFound);
 
-        request.ApplyUpdateEntity(employee);
+        request.ApplyEditEntity(employee);
         await _context.SaveChangesAsync();
         
         return Result.Success();

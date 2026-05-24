@@ -1,0 +1,46 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@model EmployeeDetailsVm
+
+@{
+    ViewBag.Title = "Employee Details";
+}
+
+
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">FullName: @Model.Employee.FirstName @Model.Employee.LastName</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-3 fw-bold">EmpId:</div>
+                    <div class="col-sm-9">@Model.Employee.Id</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3 fw-bold">FullName:</div>
+                    <div class="col-sm-9">@Model.Employee.FirstName @Model.Employee.LastName</div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3 fw-bold">Salary:</div>
+                    <div class="col-sm-9">@Model.Employee.Salary</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-3 fw-bold">Department:</div>
+                    <div class="col-sm-9">
+                        <span class="badge bg-secondary">@Model.Employee.DepartmentTitle</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <a href="/Employees/Edit/@Model.Employee.Id" class="btn btn-warning">Edit</a>
+                <a href="/Employees/Index" class="btn btn-outline-secondary">Employee List</a>
+            </div>
+        </div>
+    </div>

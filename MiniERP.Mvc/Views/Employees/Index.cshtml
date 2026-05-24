@@ -1,0 +1,60 @@
+﻿@using MiniERP.Mvc.Common
+@model EmployeeIndexVm
+
+@{
+    ViewBag.Title = "List Employees";
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@if (Model.Employees.Items.Any())
+{
+    <div class="container">
+        <h2>Manage Employee</h2>
+
+        <a asp-controller="Employees" asp-action="Create" class="btn btn-primary mb-3">Create Employee</a>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Fullname</th>
+                <th>Department</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Employees.Items)
+            {
+                <tr>
+                    <td>@item.Id</td>
+
+                    <td>
+                        <a asp-controller="Employees" asp-action="Details"
+                           asp-route-id="@item.Id">@item.FirstName @item.LastName</a>
+                    </td>
+
+                    <td>@item.DepartmentTitle</td>
+
+                    <td>
+                        <a asp-controller="Employees" asp-action="Edit" asp-route-id="@item.Id"
+                           class="btn btn-warning btn-sm">Edit</a>
+
+                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Confirm Delete Employee?')">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">No employees found</div>
+}
+

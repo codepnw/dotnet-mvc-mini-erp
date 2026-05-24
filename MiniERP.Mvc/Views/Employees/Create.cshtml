@@ -1,0 +1,52 @@
+﻿@model EmployeeCreateVm
+
+@{
+    ViewBag.Title = "Create New Employee";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Add New Employee</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div class="mb-3">
+                    <label class="form-label">FirstName</label>
+                    <input asp-for="FirstName" class="form-control" placeholder="First Name"/>
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">LastName</label>
+                    <input asp-for="LastName" class="form-control" placeholder="Last Name"/>
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Citizen Id</label>
+                    <input asp-for="CitizenId" class="form-control" placeholder="0123456789123"/>
+                    <span asp-validation-for="CitizenId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Department Id</label>
+                    <input asp-for="DepartmentId" type="number" class="form-control"/>
+                    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <a href="/Employees/Index" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}
