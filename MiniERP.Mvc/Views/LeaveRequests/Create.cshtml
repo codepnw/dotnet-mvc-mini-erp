@@ -1,0 +1,79 @@
+@model LeaveRequestFormVm
+
+@{
+    ViewBag.Title = "Leave Request Create";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create Leave Request</h4>
+        </div>
+
+        <div class="card-body">
+
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <form asp-action="Create" method="post">
+
+                <div class="mb-3">
+                    <select asp-for="EmployeeId" class="form-select">
+                        <option value="">Select Employee</option>
+
+                        @foreach (var item in Model.EmployeesOptions)
+                        {
+                            <option value="@item.Id">ID: @item.Id - @item.FirstName @item.LastName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <select asp-for="LeaveTypeId" class="form-select">
+                        <option value="">Select Type</option>
+
+                        @foreach (var item in Model.LeaveTypeOptions)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="FromDate" class="form-label"></label>
+                    <input asp-for="FromDate" type="date" class="form-control"/>
+                    <span asp-validation-for="FromDate" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ToDate" class="form-label"></label>
+                    <input asp-for="ToDate" type="date" class="form-control"/>
+                    <span asp-validation-for="ToDate" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Reason" class="form-label"></label>
+                    <textarea asp-for="Reason"
+                              rows="4"
+                              class="form-control"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Save
+                </button>
+
+                <a asp-controller="LeaveRequests"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial"/>
+}

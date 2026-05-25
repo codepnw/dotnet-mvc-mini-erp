@@ -1,0 +1,107 @@
+@using MiniERP.Mvc.Entities
+@model LeaveRequestDetailsVm
+
+@{
+    ViewBag.Title = "Leave Request Details";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Leave Request Details</h4>
+            </div>
+
+            <div class="card-body">
+
+                @if (Model.LeaveRequest.Status == LeaveStatus.Pending)
+                {
+                    <div class="mb-3">
+                        <form asp-action="Approve"
+                              asp-route-id="@Model.LeaveRequest.Id"
+                              method="post"
+                              class="d-inline">
+
+                            <button
+                                class="btn btn-success"
+                                onclick="return confirm('Confirm Approve?')"
+                            >
+                                Approve
+                            </button>
+                        </form>
+
+                        <form asp-action="Reject"
+                              asp-route-id="@Model.LeaveRequest.Id"
+                              method="post"
+                              class="d-inline">
+
+                            <button
+                                class="btn btn-danger"
+                                onclick="return confirm('Confirm Reject?')"
+                            >
+                                Reject
+                            </button>
+                        </form>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <strong>Employee:</strong>
+                    <div>@Model.LeaveRequest.FirstName @Model.LeaveRequest.LastName</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Leave Type:</strong>
+                    <div>@Model.LeaveRequest.LeaveTypeTitle</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>From Date:</strong>
+                    <div>@Model.LeaveRequest.FromDate.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>To Date:</strong>
+                    <div>@Model.LeaveRequest.ToDate.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    <div>@Model.LeaveRequest.Status</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Reason:</strong>
+                    <div>
+                        @(string.IsNullOrWhiteSpace(Model.LeaveRequest.Reason)
+                            ? "-"
+                            : Model.LeaveRequest.Reason)
+                    </div>
+                </div>
+
+                <a asp-controller="LeaveRequests"
+                   asp-action="Edit"
+                   asp-route-id="@Model.LeaveRequest.Id"
+                   class="btn btn-warning text-white">
+                    Edit
+                </a>
+
+                <a asp-controller="LeaveRequests"
+                   asp-action="Index"
+                   class="btn btn-secondary">
+                    Back
+                </a>
+            </div>
+
+        </div>
+    }
+
+</div>

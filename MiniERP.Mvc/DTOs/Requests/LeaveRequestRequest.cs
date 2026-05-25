@@ -4,24 +4,16 @@ namespace MiniERP.Mvc.DTOs.Requests;
 
 public class LeaveRequestCreateRequest
 {
-    [Required(ErrorMessage = "Employee id is required")]
-    public required int EmployeeId { get; init; }
-
-    [Required(ErrorMessage = "Leave request id is required")]
-    public required int LeaveTypeId { get; init; }
-
-    [Required(ErrorMessage = "From date is required")]
-    public required DateTime FromDate { get; init; }
-
-    [Required(ErrorMessage = "To date is required")]
-    public required DateTime ToDate { get; init; }
-
-    [StringLength(255)] public string? Reason { get; init; }
+    public int EmployeeId { get; init; }
+    public int LeaveTypeId { get; init; }
+    public DateTime FromDate { get; init; }
+    public DateTime ToDate { get; init; }
+    public string? Reason { get; init; }
 };
 
 public class LeaveRequestUpdateRequest
 {
     public DateTime? FromDate { get; init; }
     public DateTime? ToDate { get; init; }
-    [StringLength(255)] public string? Reason { get; init; }
+    public string? Reason { get; init; }
 };

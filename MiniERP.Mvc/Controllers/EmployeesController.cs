@@ -76,13 +76,13 @@ namespace MiniERP.Mvc.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var result = await _service.GetEmployeeById(id);
-            
-            var vm = new EmployeeEditVm();
 
             if (result.IsFailure)
             {
-                vm.ErrorMessage = result.ErrorMessage;
-                return View(vm);
+                return View(new EmployeeEditVm
+                {
+                    ErrorMessage = result.ErrorMessage,
+                });
             }
 
             return View(result.Data!.ToEditViewModel());

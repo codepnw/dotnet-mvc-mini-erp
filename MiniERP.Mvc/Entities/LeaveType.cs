@@ -3,7 +3,7 @@ namespace MiniERP.Mvc.Entities;
 public class LeaveType
 {
     public int Id { get; set; }
-    public required string Title { get; set; }
+    public string Title { get; set; } = "";
 
     public bool IsDeleted { get; set; } = false;
     public DateTime CreatedAt { get; set; }
