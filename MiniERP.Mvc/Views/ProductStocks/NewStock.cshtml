@@ -1,0 +1,41 @@
+@model ProductAdjustStockVm
+
+<div class="container mt-4">
+
+    <div class="card">
+
+        <div class="card-header bg-success text-white">
+            New Stock
+        </div>
+
+        <div class="card-body">
+
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <form asp-action="NewStock" asp-route-id="@Model.ProductId" method="post">
+
+                <input asp-for="ProductId" type="hidden" />
+
+                <div class="mb-3">
+                    <label asp-for="NewStock"></label>
+
+                    <input asp-for="NewStock" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Remark"></label>
+
+                    <input asp-for="Remark" class="form-control" />
+                </div>
+
+                <button class="btn btn-success">
+                    New Stock
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

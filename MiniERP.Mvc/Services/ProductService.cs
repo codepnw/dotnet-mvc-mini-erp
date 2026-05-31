@@ -8,7 +8,7 @@ using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 

@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MiniERP.Mvc.Common.Queries;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Services;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Controllers;
 
@@ -9,90 +12,103 @@ public class ProductsController(IProductService service) : Controller
 {
     private readonly IProductService _service = service;
 
-    public async Task<IActionResult> Index(ProductQuery req)
+    [HttpGet]
+    public async Task<IActionResult> Index(ProductQuery query)
     {
-        var result = await _service.ListProducts(req);
+        var result = await _service.ListProducts(query);
 
-        // TODO: View
-        return Json(result);
+        var vm = new ProductIndexVm()
+        {
+            Query = query
+        };
+
+        if (result.IsFailure)
+        {
+            vm.ErrorMessage = result.ErrorMessage;
+            return View(vm);
+        }
+
+        vm.Products = result.Data!;
+        return View(vm);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        return View(new ProductFormVm());
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ProductCreateDto dto)
+    public async Task<IActionResult> Create(ProductFormVm vm)
     {
-        var result = await _service.CreateProduct(dto);
+        if (!ModelState.IsValid) return View(vm);
 
-        // TODO: View
-        return Json(result);
+        var result = await _service.CreateProduct(vm.ToCreateRequest());
+
+        if (result.IsFailure)
+        {
+            vm.ErrorMessage = result.ErrorMessage;
+            return View(vm);
+        }
+
+        return RedirectToAction("Index");
     }
 
+    [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
         var result = await _service.GetProduct(id);
 
-        // TODO: View
-        return Json(result);
+        var vm = new ProductDetailsVm();
+
+        if (result.IsFailure)
+        {
+            vm.ErrorMessage = result.ErrorMessage;
+            return View(vm);
+        }
+
+        vm.Product = result.Data!;
+        return View(vm);
     }
 
-    public async Task<IActionResult> LowStock()
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
     {
-        var result = await _service.GetProductsLowStock();
+        var result = await _service.GetProduct(id);
 
-        // TODO: View
-        return Json(result);
+        if (result.IsFailure)
+        {
+            return View(new ProductFormVm
+            {
+                ErrorMessage = result.ErrorMessage
+            });
+        }
+
+        return View(result.Data!.ToViewModel());
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(int id, [FromBody] ProductUpdateDto dto)
+    public async Task<IActionResult> Edit(int id, ProductFormVm vm)
     {
-        var result = await _service.UpdateProduct(id, dto);
+        if (!ModelState.IsValid) return View(vm);
 
-        // TODO: View
-        return result.IsFailure
-            ? Json(new { error = result.ErrorMessage })
-            : Json(new { message = "product updated" });
+        var result = await _service.UpdateProduct(id, vm.ToUpdateRequest());
+
+        if (result.IsFailure)
+        {
+            ModelState.AddModelError("", result.ErrorMessage!);
+            return View(vm);
+        }
+
+        return RedirectToAction("Index");
     }
 
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _service.DeleteProduct(id);
 
-        // TODO: View
         return result.IsFailure
-            ? Json(new { error = result.ErrorMessage })
-            : Json(new { message = "product deleted" });
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Increase(int id, [FromBody] ProductStockQuantityDto dto)
-    {
-        var result = await _service.IncreaseStock(id, dto);
-
-        // TODO: View
-        return result.IsFailure
-            ? Json(new { error = result.ErrorMessage })
-            : Json(new { message = "product increased" });
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Decrease(int id, [FromBody] ProductStockQuantityDto dto)
-    {
-        var result = await _service.DecreaseStock(id, dto);
-
-        // TODO: View
-        return result.IsFailure
-            ? Json(new { error = result.ErrorMessage })
-            : Json(new { message = "product decreased" });
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Adjust(int id, [FromBody] ProductStockAdjustDto dto)
-    {
-        var result = await _service.AdjustStock(id, dto);
-
-        // TODO: View
-        return result.IsFailure
-            ? Json(new { error = result.ErrorMessage })
-            : Json(new { message = "product updated" });
+            ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
+            : RedirectToAction("Index");
     }
 }

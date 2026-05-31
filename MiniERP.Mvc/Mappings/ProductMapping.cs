@@ -1,7 +1,7 @@
 using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Mappings;
 
@@ -41,4 +41,38 @@ public static class ProductMapping
 
         product.UpdatedAt = DateTime.UtcNow;
     }
+
+    public static ProductCreateRequest ToCreateRequest(this ProductFormVm vm) => new()
+    {
+        Name = vm.Name,
+        Sku = vm.Sku,
+        Price = vm.Price,
+        Stock = vm.Stock,
+        MinimumStock = vm.MinimumStock,
+        CategoryId = vm.CategoryId
+    };
+
+    public static ProductUpdateRequest ToUpdateRequest(this ProductFormVm vm) => new()
+    {
+        Name = vm.Name,
+        Sku = vm.Sku,
+        Price = vm.Price,
+        Stock = vm.Stock,
+        MinimumStock = vm.MinimumStock,
+        CategoryId = vm.CategoryId
+    };
+
+    public static ProductFormVm ToViewModel(this ProductDto dto) => new()
+    {
+        Name = dto.Name,
+        Sku = dto.Sku,
+        Price = dto.Price,
+        Stock = dto.Stock,
+        MinimumStock = dto.MinimumStock
+    };
+
+    public static ProductStockQuantityRequest ToRequest(this ProductStockVm vm) => new()
+    {
+        Quantity = vm.Quantity
+    };
 }

@@ -1,0 +1,45 @@
+@model ProductLowStockVm
+
+<div class="container mt-4">
+
+    <h2>Low Stock Products</h2>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+    else if (Model.Products.Any())
+    {
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>SKU</th>
+                <th>Stock</th>
+                <th>Minimum</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var item in Model.Products)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Sku</td>
+                    <td>@item.Stock</td>
+                    <td>@item.MinimumStock</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-success">
+            No low stock products.
+        </div>
+    }
+
+</div>

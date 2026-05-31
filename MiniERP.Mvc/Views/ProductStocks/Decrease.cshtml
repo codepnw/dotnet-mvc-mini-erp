@@ -1,0 +1,35 @@
+@model ProductStockVm
+
+<div class="container mt-4">
+
+    <div class="card">
+
+        <div class="card-header bg-success text-white">
+            Decrease Stock
+        </div>
+
+        <div class="card-body">
+
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <form asp-action="Decrease" method="post">
+
+                <input asp-for="ProductId" type="hidden" />
+
+                <div class="mb-3">
+                    <label asp-for="Quantity"></label>
+
+                    <input asp-for="Quantity" class="form-control" />
+                </div>
+
+                <button class="btn btn-success">
+                    Decrease
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
