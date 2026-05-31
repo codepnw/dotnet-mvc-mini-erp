@@ -78,3 +78,16 @@ public class ProductAdjustStockVm
     [Required(ErrorMessage = "Remark is required")]
     public string Remark { get; set; } = "";
 }
+
+public class ProductStockManagementVm
+{
+    public int ProductId { get; set; }
+
+    public string ProductName { get; set; } = "";
+    public string Sku { get; set; } = "";
+
+    public int CurrentStock { get; set; }
+    public int MinimumStock { get; set; }
+
+    public string? ErrorMessage { get; set; }
+}

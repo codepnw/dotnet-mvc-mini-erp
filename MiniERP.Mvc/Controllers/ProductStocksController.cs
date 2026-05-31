@@ -12,6 +12,22 @@ public class ProductStocksController(IProductService service) : Controller
     private readonly IProductService _service = service;
 
     [HttpGet]
+    public async Task<IActionResult> Manage(int id)
+    {
+        var result = await _service.GetProduct(id);
+
+        var vm = new ProductStockManagementVm();
+
+        if (result.IsFailure)
+        {
+            vm.ErrorMessage = result.ErrorMessage;
+            return View(vm);
+        }
+
+        return View(result.Data!.ToStockViewModel());
+    }
+
+    [HttpGet]
     public async Task<IActionResult> LowStock()
     {
         var result = await _service.GetProductsLowStock();

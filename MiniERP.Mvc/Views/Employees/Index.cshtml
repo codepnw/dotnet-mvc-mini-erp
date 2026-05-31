@@ -12,49 +12,59 @@
 
 @if (Model.Employees.Items.Any())
 {
-    <div class="container">
-        <h2>Manage Employee</h2>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Manage Employees</h2>
 
-        <a asp-controller="Employees" asp-action="Create" class="btn btn-primary mb-3">Create Employee</a>
+            <a asp-controller="Employees" asp-action="Create" class="btn btn-primary">
+                Create Employee
+            </a>
+        </div>
 
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Id</th>
-                <th>Fullname</th>
-                <th>Department</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var item in Model.Employees.Items)
-            {
-                <tr>
-                    <td>@item.Id</td>
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-                    <td>
-                        <a asp-controller="Employees" asp-action="Details"
-                           asp-route-id="@item.Id">@item.FirstName @item.LastName</a>
-                    </td>
+                <table class="table table-bordered table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Fullname</th>
+                            <th>Department</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Employees.Items)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
 
-                    <td>@item.DepartmentTitle</td>
+                                <td>
+                                    <a asp-controller="Employees" asp-action="Details" asp-route-id="@item.Id">@item.FirstName
+                                        @item.LastName</a>
+                                    </td>
 
-                    <td>
-                        <a asp-controller="Employees" asp-action="Edit" asp-route-id="@item.Id"
-                           class="btn btn-warning btn-sm">Edit</a>
+                                    <td>@item.DepartmentTitle</td>
 
-                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Confirm Delete Employee?')">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-}
-else
-{
-    <div class="alert alert-info">No employees found</div>
-}
+                                    <td>
+                                        <a asp-controller="Employees" asp-action="Edit" asp-route-id="@item.Id"
+                                           class="btn btn-warning btn-sm">Edit</a>
+
+                                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Confirm Delete Employee?')">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+                else
+    {
+        <div class="alert alert-info">No employees found</div>
+    }
 

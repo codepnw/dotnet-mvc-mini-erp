@@ -75,4 +75,13 @@ public static class ProductMapping
     {
         Quantity = vm.Quantity
     };
+
+    public static ProductStockManagementVm ToStockViewModel(this ProductDto dto) => new()
+    {
+        ProductId = dto.Id,
+        ProductName = dto.Name,
+        Sku = dto.Sku,
+        CurrentStock = dto.Stock,
+        MinimumStock = dto.MinimumStock,
+    };
 }

@@ -1,0 +1,82 @@
+@model ProductStockManagementVm
+
+@{
+    ViewBag.Title = "Stock Management";
+}
+
+<div class="container">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Stock Management</h4>
+        </div>
+
+        <div class="card-body">
+
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">
+                    @Model.ErrorMessage
+                </div>
+            }
+
+            <dl class="row">
+
+                <dt class="col-sm-3">Product Name</dt>
+                <dd class="col-sm-9">@Model.ProductName</dd>
+
+                <dt class="col-sm-3">SKU</dt>
+                <dd class="col-sm-9">@Model.Sku</dd>
+
+                <dt class="col-sm-3">Current Stock</dt>
+                <dd class="col-sm-9">
+
+                    @if (Model.CurrentStock <= Model.MinimumStock)
+                    {
+                        <span class="badge bg-danger">
+                            @Model.CurrentStock
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">
+                            @Model.CurrentStock
+                        </span>
+                    }
+
+                </dd>
+
+                <dt class="col-sm-3">Minimum Stock</dt>
+                <dd class="col-sm-9">@Model.MinimumStock</dd>
+
+            </dl>
+
+            <hr />
+
+            <div class="d-flex gap-2 flex-wrap">
+
+                <a asp-controller="ProductStocks" asp-action="Increase" asp-route-id="@Model.ProductId"
+                   class="btn btn-success">
+                    Increase Stock
+                </a>
+
+                <a asp-controller="ProductStocks" asp-action="Decrease" asp-route-id="@Model.ProductId"
+                   class="btn btn-warning">
+                    Decrease Stock
+                </a>
+
+                <a asp-controller="ProductStocks" asp-action="NewStock" asp-route-id="@Model.ProductId"
+                   class="btn btn-primary">
+                    Set New Stock
+                </a>
+
+                <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.ProductId"
+                   class="btn btn-outline-secondary">
+                    Product Details
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
