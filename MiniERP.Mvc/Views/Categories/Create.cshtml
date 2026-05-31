@@ -1,0 +1,55 @@
+@model CategoryFormVm
+
+@{
+    ViewBag.Title = "Create Category";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create Category</h4>
+        </div>
+
+        <div class="card-body">
+
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <form asp-action="Create" method="post">
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+
+                    <input asp-for="Title" class="form-control" placeholder="Category Title" />
+
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Description" class="form-label"></label>
+
+                    <textarea asp-for="Description" rows="4" class="form-control"
+                              placeholder="Category Description"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Save
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

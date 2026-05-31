@@ -7,7 +7,7 @@ using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
@@ -56,7 +56,7 @@ public class CategoryService(AppDbContext context) : ICategoryService
             {
                 Id = x.Id,
                 Title = x.Title,
-                Description = x.Description,
+                Description = x.Description!,
             })
             .ToListAsync();
 
@@ -79,7 +79,7 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
         return category is null
             ? Result<CategoryDto>.Failure("Category not found", ErrorCode.NotFound)
-            : Result<CategoryDto>.Success(category.ToCategoryDto());
+            : Result<CategoryDto>.Success(category.ToDto());
     }
 
     public async Task<Result> UpdateCategory(int id, CategoryUpdateRequest request)
