@@ -1,0 +1,79 @@
+@model DepartmentIndexVm
+
+@{
+    ViewBag.Title = "Departments";
+}
+
+<div class="container mt-4">
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Manage Departments</h2>
+
+        <a asp-action="Create" class="btn btn-primary">
+            Create Department
+        </a>
+    </div>
+
+    @if (Model.Departments.Items.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <table class="table table-bordered table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Id</th>
+                            <th>Title</th>
+                            <th width="220">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in Model.Departments.Items)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+
+                                <td>@item.Title</td>
+
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">
+                                        Details
+                                    </a>
+
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm text-white">
+                                        Edit
+                                    </a>
+
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Delete this department?')">
+
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary">
+            No departments found.
+        </div>
+    }
+
+</div>

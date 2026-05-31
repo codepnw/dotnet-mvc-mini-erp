@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Mvc.Common.Queries;
-using MiniERP.Mvc.DTOs;
+using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Services;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Controllers
 {
@@ -10,11 +12,23 @@ namespace MiniERP.Mvc.Controllers
         private readonly IDepartmentService _service = service;
 
         [HttpGet]
-        public async Task<IActionResult> Index(DepartmentQuery req)
+        public async Task<IActionResult> Index(DepartmentQuery query)
         {
-            var result = await _service.ListDepartments(req);
+            var result = await _service.ListDepartments(query);
 
-            return Json(result);
+            var vm = new DepartmentIndexVm()
+            {
+                Query = query
+            };
+
+            if (result.IsFailure)
+            {
+                vm.ErrorMessage = result.ErrorMessage;
+                return View(vm);
+            }
+
+            vm.Departments = result.Data!;
+            return View(vm);
         }
 
         [HttpGet]
@@ -22,35 +36,80 @@ namespace MiniERP.Mvc.Controllers
         {
             var result = await _service.GetDepartment(id);
 
-            return Json(result);
+            var vm = new DepartmentDetailsVm();
+
+            if (result.IsFailure)
+            {
+                vm.ErrorMessage = result.ErrorMessage;
+                return View(vm);
+            }
+
+            vm.Department = result.Data!;
+            return View(vm);
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new DepartmentFormVm());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] DepartmentDto dto)
+        public async Task<IActionResult> Create(DepartmentFormVm vm)
         {
-            if (!ModelState.IsValid) return Json(ModelState);
+            if (!ModelState.IsValid) return View(vm);
 
-            var result = await _service.CreateDepartment(dto);
+            var result = await _service.CreateDepartment(vm.ToRequest());
 
-            return Json(result);
+            if (result.IsFailure)
+            {
+                ModelState.AddModelError("", result.ErrorMessage!);
+                return View(vm);
+            }
+
+            return RedirectToAction("Index");
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> Edit(int id, [FromBody] DepartmentDto dto)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
-            if (!ModelState.IsValid) return Json(ModelState);
+            var result = await _service.GetDepartment(id);
 
-            var result = await _service.EditDepartment(id, dto);
+            if (result.IsFailure)
+            {
+                return View(new DepartmentFormVm
+                {
+                    ErrorMessage = result.ErrorMessage
+                });
+            }
 
-            return Json(result);
+            return View(result.Data!.ToViewModel());
         }
 
-        [HttpDelete]
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, DepartmentFormVm vm)
+        {
+            if (!ModelState.IsValid) return View(vm);
+
+            var result = await _service.EditDepartment(id, vm.ToRequest());
+
+            if (result.IsFailure)
+            {
+                ModelState.AddModelError("", result.ErrorMessage!);
+                return View(vm);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            await _service.DeleteDepartment(id);
+            var result = await _service.DeleteDepartment(id);
 
-            return Json(new { message = "department deleted."});
+            return result.IsFailure
+                ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
+                : RedirectToAction("Index");
         }
     }
 }

@@ -1,0 +1,48 @@
+@model DepartmentDetailsVm
+
+@{
+    ViewBag.Title = "Department Details";
+}
+
+<div class="container mt-4">
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Department Details</h4>
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <strong>Id</strong>
+                    <div>@Model.Department.Id</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Title</strong>
+                    <div>@Model.Department.Title</div>
+                </div>
+
+                <a asp-action="Edit" asp-route-id="@Model.Department.Id" class="btn btn-warning text-white">
+                    Edit
+                </a>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Back
+                </a>
+
+            </div>
+
+        </div>
+    }
+
+</div>

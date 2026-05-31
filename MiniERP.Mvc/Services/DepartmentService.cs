@@ -14,7 +14,7 @@ using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Exceptions;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
@@ -74,7 +74,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
         return department is null
             ? Result<DepartmentDto>.Failure("Department not found", ErrorCode.NotFound)
-            : Result<DepartmentDto>.Success(department.ToDepartmentDto());
+            : Result<DepartmentDto>.Success(department.ToDto());
     }
 
     public async Task<Result<DepartmentDto>> CreateDepartment(DepartmentRequest request)
@@ -89,7 +89,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
         _context.Departments.Add(department);
         await _context.SaveChangesAsync();
         
-        return Result<DepartmentDto>.Success(department.ToDepartmentDto());
+        return Result<DepartmentDto>.Success(department.ToDto());
     }
 
     public async Task<Result> EditDepartment(int id, DepartmentRequest request)
