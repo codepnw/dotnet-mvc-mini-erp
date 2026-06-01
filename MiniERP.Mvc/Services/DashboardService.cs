@@ -2,20 +2,20 @@ using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.Entities;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
 public interface IDashboardService
 {
-    Task<Result<DashboardStatsViewModel>> GetStats();
+    Task<Result<DashboardStatsVm>> GetStats();
 }
 
 public class DashboardService(AppDbContext context) : IDashboardService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result<DashboardStatsViewModel>> GetStats()
+    public async Task<Result<DashboardStatsVm>> GetStats()
     {
         // Count Dashboard Stats
         var totalEmployees = await _context.Employees.CountAsync();
@@ -27,7 +27,7 @@ public class DashboardService(AppDbContext context) : IDashboardService
             .SumAsync(x => x.TotalAmount);
         var totalPendingLeave = await _context.LeaveRequests.CountAsync(x => x.Status == LeaveStatus.Pending);
 
-        return Result<DashboardStatsViewModel>.Success(new DashboardStatsViewModel
+        return Result<DashboardStatsVm>.Success(new DashboardStatsVm
         {
             TotalEmployees = totalEmployees,
             TotalProducts = totalProducts,

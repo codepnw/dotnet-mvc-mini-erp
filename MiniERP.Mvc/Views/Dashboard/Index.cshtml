@@ -1,0 +1,73 @@
+@model DashboardStatsVm
+
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<div class="container">
+
+    <h2 class="mb-4">Dashboard</h2>
+
+    <div class="row g-3">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Employees</h6>
+                    <h2>@Model.TotalEmployees</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Products</h6>
+                    <h2>@Model.TotalProducts</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Low Stock Products</h6>
+                    <h2>@Model.LowStockProducts</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-3 mt-1">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Orders</h6>
+                    <h2>@Model.TotalOrders</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Total Revenue</h6>
+                    <h2>@Model.TotalRevenue.ToString("N2")</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6>Pending Leaves</h6>
+                    <h2>@Model.PendingLeaves</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

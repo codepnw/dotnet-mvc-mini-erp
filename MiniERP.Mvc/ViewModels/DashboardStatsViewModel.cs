@@ -1,6 +1,6 @@
-namespace MiniERP.Mvc.Models;
+namespace MiniERP.Mvc.ViewModels;
 
-public class DashboardStatsViewModel
+public class DashboardStatsVm
 {
     public int TotalEmployees { get; set; }
     public int TotalProducts { get; set; }
