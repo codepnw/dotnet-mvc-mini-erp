@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.DTOs.Requests;
@@ -11,6 +12,7 @@ namespace MiniERP.Mvc.Controllers
     {
         private readonly IDepartmentService _service = service;
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Index(DepartmentQuery query)
         {
@@ -31,6 +33,7 @@ namespace MiniERP.Mvc.Controllers
             return View(vm);
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -48,12 +51,14 @@ namespace MiniERP.Mvc.Controllers
             return View(vm);
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult Create()
         {
             return View(new DepartmentFormVm());
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(DepartmentFormVm vm)
         {
@@ -70,6 +75,7 @@ namespace MiniERP.Mvc.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -86,6 +92,7 @@ namespace MiniERP.Mvc.Controllers
             return View(result.Data!.ToViewModel());
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit(int id, DepartmentFormVm vm)
         {
@@ -102,6 +109,7 @@ namespace MiniERP.Mvc.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

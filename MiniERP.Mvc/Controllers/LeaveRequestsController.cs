@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common.Queries;
@@ -13,6 +14,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
 {
     private readonly ILeaveRequestService _service = service;
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Index(LeaveRequestQuery query)
     {
@@ -33,6 +35,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(vm);
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -50,6 +53,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(vm);
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -62,6 +66,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(vm);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(LeaveRequestFormVm vm)
     {
@@ -80,10 +85,11 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
             ModelState.AddModelError("", result.ErrorMessage!);
             return View(vm);
         }
-        
+
         return RedirectToAction("index");
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -100,6 +106,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(result.Data!.ToViewModel());
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Edit(int id, LeaveRequestFormVm vm)
     {
@@ -116,6 +123,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return RedirectToAction("index");
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Approve(int id)
     {
@@ -126,6 +134,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
             : RedirectToAction("index");
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Reject(int id)
     {
@@ -136,6 +145,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
             : RedirectToAction("index");
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

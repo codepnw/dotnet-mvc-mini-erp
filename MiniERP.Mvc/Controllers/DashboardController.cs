@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Mvc.Services;
 using MiniERP.Mvc.ViewModels;
@@ -8,6 +9,7 @@ public class DashboardController(IDashboardService service) : Controller
 {
     private readonly IDashboardService _service = service;
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Index()
     {

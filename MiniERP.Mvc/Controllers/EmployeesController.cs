@@ -6,6 +6,7 @@ using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.ViewModels;
 using MiniERP.Mvc.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MiniERP.Mvc.Controllers
 {
@@ -13,6 +14,7 @@ namespace MiniERP.Mvc.Controllers
     {
         private readonly IEmployeeService _service = service;
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Index(EmployeeQuery req)
         {
@@ -33,6 +35,7 @@ namespace MiniERP.Mvc.Controllers
             return View(vm);
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -50,12 +53,14 @@ namespace MiniERP.Mvc.Controllers
             return View(vm);
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(EmployeeCreateVm vm)
         {
@@ -72,6 +77,7 @@ namespace MiniERP.Mvc.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -88,6 +94,7 @@ namespace MiniERP.Mvc.Controllers
             return View(result.Data!.ToEditViewModel());
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Edit(int id, EmployeeEditVm vm)
         {
@@ -104,6 +111,7 @@ namespace MiniERP.Mvc.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

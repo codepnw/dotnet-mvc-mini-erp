@@ -10,7 +10,7 @@ using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace MiniERP.Mvc.Services;

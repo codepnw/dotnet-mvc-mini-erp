@@ -3,7 +3,7 @@ using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
-using MiniERP.Mvc.Models;
+using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 

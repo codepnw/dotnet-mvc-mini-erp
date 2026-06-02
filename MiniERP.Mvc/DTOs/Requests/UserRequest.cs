@@ -23,10 +23,6 @@ public class UserCreateRequest
 
 public class UserLoginRequest
 {
-    [Required(ErrorMessage = "Email is required")]
-    [EmailAddress(ErrorMessage = "Invalid Email Address")]
-    public required string Email { get; init; }
-
-    [Required(ErrorMessage = "Password is required")]
-    public required string Password { get; init; }
+    public string Email { get; init; } = "";
+    public string Password { get; init; } = "";
 }

@@ -1,6 +1,6 @@
 using MiniERP.Mvc.Entities;
 
-namespace MiniERP.Mvc.Models;
+namespace MiniERP.Mvc.ViewModels;
 
 // public class OrderViewModel
 // {

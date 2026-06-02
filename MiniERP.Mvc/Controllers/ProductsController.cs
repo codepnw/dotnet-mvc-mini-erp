@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MiniERP.Mvc.Common.Queries;
@@ -12,6 +13,7 @@ public class ProductsController(IProductService service) : Controller
 {
     private readonly IProductService _service = service;
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Index(ProductQuery query)
     {
@@ -32,12 +34,14 @@ public class ProductsController(IProductService service) : Controller
         return View(vm);
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
         return View(new ProductFormVm());
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(ProductFormVm vm)
     {
@@ -54,6 +58,7 @@ public class ProductsController(IProductService service) : Controller
         return RedirectToAction("Index");
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -71,6 +76,7 @@ public class ProductsController(IProductService service) : Controller
         return View(vm);
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -87,6 +93,7 @@ public class ProductsController(IProductService service) : Controller
         return View(result.Data!.ToViewModel());
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Edit(int id, ProductFormVm vm)
     {
@@ -103,6 +110,8 @@ public class ProductsController(IProductService service) : Controller
         return RedirectToAction("Index");
     }
 
+    [Authorize]
+    [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _service.DeleteProduct(id);

@@ -1,4 +1,4 @@
-namespace MiniERP.Mvc.Models;
+namespace MiniERP.Mvc.ViewModels;
 
 public class AuthViewModel
 {

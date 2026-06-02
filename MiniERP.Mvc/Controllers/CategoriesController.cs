@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.DTOs.Requests;
@@ -11,6 +12,7 @@ public class CategoriesController(ICategoryService service) : Controller
 {
     private readonly ICategoryService _service = service;
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Index(CategoryQuery query)
     {
@@ -31,6 +33,8 @@ public class CategoriesController(ICategoryService service) : Controller
         return View(vm);
     }
 
+    [Authorize]
+    [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
         var result = await _service.GetCategory(id);
@@ -47,12 +51,14 @@ public class CategoriesController(ICategoryService service) : Controller
         return View(vm);
     }
 
+    [Authorize]
     [HttpGet]
     public IActionResult Create()
     {
         return View(new CategoryFormVm());
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(CategoryFormVm vm)
     {
@@ -69,6 +75,7 @@ public class CategoriesController(ICategoryService service) : Controller
         return RedirectToAction("Index");
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -85,6 +92,7 @@ public class CategoriesController(ICategoryService service) : Controller
         return View(result.Data!.ToViewModel());
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Edit(int id, CategoryFormVm vm)
     {
@@ -101,6 +109,8 @@ public class CategoriesController(ICategoryService service) : Controller
         return RedirectToAction("Index");
     }
 
+    [Authorize]
+    [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
         var result = await _service.DeleteCategory(id);
