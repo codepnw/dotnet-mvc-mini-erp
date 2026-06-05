@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
+using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.ViewModels;
@@ -17,21 +18,21 @@ namespace MiniERP.Mvc.Services;
 
 public interface IUserService
 {
-    Task<Result<AuthViewModel>> CreateUser(UserCreateRequest request);
-    Task<Result<AuthViewModel>> Login(UserLoginRequest request);
+    Task<Result<UserAuthDto>> CreateUser(UserCreateRequest request);
+    Task<Result<UserAuthDto>> Login(UserLoginRequest request);
 }
 
 public class UserService(AppDbContext context, IConfiguration config) : IUserService
 {
     private readonly AppDbContext _context = context;
-    
+
     // JWT Config
     private readonly string _secretKey = config["Jwt:SecretKey"]!;
     private readonly string _refreshKey = config["Jwt:RefreshSecretKey"]!;
     private readonly double _accessTokenExpireHours = double.Parse(config["Jwt:AccessExpireHours"]!);
     private readonly double _refreshTokenExpireHours = double.Parse(config["Jwt:RefreshExpireHours"]!);
 
-    public async Task<Result<AuthViewModel>> CreateUser(UserCreateRequest request)
+    public async Task<Result<UserAuthDto>> CreateUser(UserCreateRequest request)
     {
         var normalizedEmail = EmailLowerCase(request.Email);
 
@@ -39,11 +40,11 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
         var emailExists = await _context.Users.AnyAsync(x => x.Email == normalizedEmail);
 
         if (emailExists)
-            return Result<AuthViewModel>.Failure("Email already exists", ErrorCode.BadRequest);
+            return Result<UserAuthDto>.Failure("Email already exists", ErrorCode.BadRequest);
 
         // Check Matching Password
         if (request.Password != request.ConfirmPassword)
-            return Result<AuthViewModel>.Failure("Password not match", ErrorCode.BadRequest);
+            return Result<UserAuthDto>.Failure("Password not match", ErrorCode.BadRequest);
 
         var newUser = request.ToUserEntity("");
 
@@ -69,33 +70,33 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
             _refreshTokenExpireHours
         );
 
-        var response = new AuthViewModel
+        var response = new UserAuthDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
         };
 
-        return Result<AuthViewModel>.Success(response);
+        return Result<UserAuthDto>.Success(response);
     }
 
-    public async Task<Result<AuthViewModel>> Login(UserLoginRequest request)
+    public async Task<Result<UserAuthDto>> Login(UserLoginRequest request)
     {
         var normalizedEmail = EmailLowerCase(request.Email);
-        
+
         // Find User by Email
         var userData = await _context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Email == normalizedEmail);
 
         if (userData is null)
-            return Result<AuthViewModel>.Failure("Invalid email or password", ErrorCode.BadRequest);
+            return Result<UserAuthDto>.Failure("Invalid email or password", ErrorCode.BadRequest);
 
         // Verify Password
         var hasher = new PasswordHasher<User>();
         var verifyPassword = hasher.VerifyHashedPassword(userData, userData.PasswordHash, request.Password);
 
         if (verifyPassword != PasswordVerificationResult.Success)
-            return Result<AuthViewModel>.Failure("Invalid email or password", ErrorCode.BadRequest);
+            return Result<UserAuthDto>.Failure("Invalid email or password", ErrorCode.BadRequest);
 
         // Generate Token
         var accessToken = GenerateJwtToken(
@@ -109,13 +110,16 @@ public class UserService(AppDbContext context, IConfiguration config) : IUserSer
             _refreshTokenExpireHours
         );
 
-        var response = new AuthViewModel
+        var response = new UserAuthDto
         {
+            UserId = userData.Id,
+            Email = userData.Email,
+            Role = userData.Role.ToString(),
             AccessToken = accessToken,
             RefreshToken = refreshToken,
         };
 
-        return Result<AuthViewModel>.Success(response);
+        return Result<UserAuthDto>.Success(response);
     }
 
     private static string EmailLowerCase(string email)

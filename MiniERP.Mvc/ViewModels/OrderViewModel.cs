@@ -1,30 +1,42 @@
-using MiniERP.Mvc.Entities;
+using System.ComponentModel.DataAnnotations;
+using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Queries;
+using MiniERP.Mvc.DTOs.Responses;
 
 namespace MiniERP.Mvc.ViewModels;
 
-// public class OrderViewModel
-// {
-//     public int Id { get; set; }
-//     public string OrderNumber { get; set; } = string.Empty;
-//     public decimal TotalAmount { get; set; }
-//     public OrderStatus Status { get; set; }
-//     public DateTime CreatedAt { get; set; }
-// }
-
-public class OrderDetailsViewModel
+public class OrderIndexVm
 {
-    public int Id { get; set; }
-    public string OrderNumber { get; set; } = string.Empty;
-    public decimal TotalAmount { get; set; }
-    public OrderStatus Status { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public List<OrderItemViewModel> Items { get; set; } = [];
+    public OrderQuery Query { get; set; } = new();
+    public PagedResult<OrderDto> Orders { get; set; } = new();
+    public string? ErrorMessage { get; set; }
 }
 
-public class OrderItemViewModel
+public class OrderDetailsVm
 {
-    public string ProductName { get; set; } = string.Empty;
+    public OrderDto Order { get; set; } = new();
+    public string? ErrorMessage { get; set; }
+}
+
+public class OrderFormVm
+{
+    public List<ProductSelectVm> Products { get; set; } = [];
+    public List<OrderItemVm> Items { get; set; } = [new()];
+}
+
+public class ProductSelectVm
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public int Stock { get; set; }
+    public decimal Price { get; set; }
+}
+
+public class OrderItemVm
+{
+    [Required(ErrorMessage = "Product id is required")]
+    public int ProductId { get; set; }
+
+    [Required(ErrorMessage = "Quantity id is required")]
     public int Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
-    public decimal TotalPrice { get; set; }
 }

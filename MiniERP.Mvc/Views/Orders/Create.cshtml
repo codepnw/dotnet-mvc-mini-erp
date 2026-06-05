@@ -1,0 +1,138 @@
+@model OrderFormVm
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="card">
+
+    <div class="card-header">
+        <h4>Create Order</h4>
+    </div>
+
+    <div class="card-body">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <form asp-action="Create" method="post">
+            <table class="table" id="items-table">
+                <thead>
+                    <tr>
+                        <th>Product Id</th>
+                        <th>Quantity</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>
+                            <select asp-for="Items[0].ProductId" class="form-select">
+                                <option value="">
+                                    Select Product
+                                </option>
+
+                                @foreach (var product in Model.Products)
+                                {
+                                    <option value="@product.Id">
+                                        @product.Name
+                                    </option>
+                                }
+                            </select>
+                        </td>
+
+                        <td>
+                            <input asp-for="Items[0].Quantity" type="number" min="1" class="form-control" />
+                        </td>
+
+                        <td>
+                            <button type="button" class="btn btn-danger remove-row">
+                                Remove
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button type="button" id="add-item" class="btn btb-secondary">
+                Add Item
+            </button>
+
+            <button type="submit" class="btn btn-primary">
+                Create Order
+            </button>
+
+            <a asp-action="Index" class="btn btn-secondary">
+                Back
+            </a>
+
+            <template id="product-options-template">
+                <option value="">
+                    Select Product
+                </option>
+
+                @foreach (var product in Model.Products)
+                {
+                    <option value="@product.Id">
+                        @product.Name
+                    </option>
+                }
+            </template>
+        </form>
+    </div>
+</div>
+
+<script>
+    let index = 1;
+
+    const options = document.getElementById("product-options-template").innerHTML
+
+    document
+        .getElementById("add-item")
+        .addEventListener("click", function () {
+            const tbody = document.querySelector("#items-table tbody")
+
+            const row = `
+                <tr>
+                    <td>
+                        <select
+                            name="Items[${index}].ProductId"
+                            class="form-select"
+                        >
+                            ${options}
+                        </select>
+                    </td>
+
+                    <td>
+                        <input
+                            name="Items[${index}].Quantity"
+                            type="number"
+                            min="1"
+                            class="form-control"
+                        />
+                    </td>
+
+                    <td>
+                        <button type="button" class="btn btn-danger remove-row">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            `
+
+            tbody.insertAdjacentHTML("beforeend", row)
+
+            index++
+        })
+
+    document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("remove-row")) {
+            const rows = document.querySelectorAll("#items-table tbody tr")
+
+            if (rows.length <= 1) {
+                alert("At least one item is required")
+                return
+            }
+
+            e.target.closest("tr").remove()
+        }
+    })
+</script>

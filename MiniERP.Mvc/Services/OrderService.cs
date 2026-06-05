@@ -6,23 +6,22 @@ using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
-using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
 public interface IOrderService
 {
-    Task<Result> CreateOrder(OrderCreateRequest request);
+    Task<Result<int>> CreateOrder(int userId, OrderCreateRequest request);
     Task<Result<PagedResult<OrderDto>>> ListOrders(OrderQuery request);
-    Task<Result<OrderDetailsViewModel>> GetOrderDetails(int orderId);
-    Task<Result> CancelOrder(int orderId);    
+    Task<Result<OrderDto>> GetOrderDetails(int orderId);
+    Task<Result> CancelOrder(int orderId);
 }
 
 public class OrderService(AppDbContext context) : IOrderService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Result> CreateOrder(OrderCreateRequest request)
+    public async Task<Result<int>> CreateOrder(int userId, OrderCreateRequest request)
     {
         var productIds = request.Items.Select(x => x.ProductId).ToList();
         var products = await _context.Products
@@ -31,10 +30,7 @@ public class OrderService(AppDbContext context) : IOrderService
 
         var order = new Order
         {
-            // TODO: Get User from Token, Generate OrderNo.
-            UserId = 1,
-            OrderNumber = "mock-order-number-0000",
-            
+            UserId = userId,
             Status = OrderStatus.Completed,
             CreatedAt = DateTime.UtcNow,
         };
@@ -43,17 +39,17 @@ public class OrderService(AppDbContext context) : IOrderService
 
         foreach (var item in request.Items)
         {
-            if (item.Quantity <= 0) return Result.Failure("Quantity must be positive", ErrorCode.BadRequest);
+            if (item.Quantity <= 0) return Result<int>.Failure("Quantity must be positive", ErrorCode.BadRequest);
 
             // Find Product
             var product = products.FirstOrDefault(x => x.Id == item.ProductId);
 
             if (product is null)
-                return Result.Failure("Product not found", ErrorCode.NotFound);
+                return Result<int>.Failure("Product not found", ErrorCode.NotFound);
 
             // Check Product Stock
             if (product.Stock < item.Quantity)
-                return Result.Failure("Product not enough stock", ErrorCode.BadRequest);
+                return Result<int>.Failure("Product not enough stock", ErrorCode.BadRequest);
 
             // Calculate Total Price
             var subTotal = product.Price * item.Quantity;
@@ -85,9 +81,12 @@ public class OrderService(AppDbContext context) : IOrderService
         order.TotalAmount = totalPrice;
         // Insert Order
         _context.Orders.Add(order);
-
         await _context.SaveChangesAsync();
-        return Result.Success();
+
+        order.OrderNumber = GenerateOrderNumber(order.Id);
+        await _context.SaveChangesAsync();
+
+        return Result<int>.Success(order.Id);
     }
 
     public async Task<Result<PagedResult<OrderDto>>> ListOrders(OrderQuery request)
@@ -139,33 +138,33 @@ public class OrderService(AppDbContext context) : IOrderService
         return Result<PagedResult<OrderDto>>.Success(result);
     }
 
-    public async Task<Result<OrderDetailsViewModel>> GetOrderDetails(int orderId)
+    public async Task<Result<OrderDto>> GetOrderDetails(int orderId)
     {
         var order = await _context.Orders
             .AsNoTracking()
             .Where(x => x.Id == orderId)
-            .Select(x => new OrderDetailsViewModel
+            .Select(x => new OrderDto
             {
                 Id = x.Id,
                 OrderNumber = x.OrderNumber,
                 TotalAmount = x.TotalAmount,
                 Status = x.Status,
                 CreatedAt = x.CreatedAt,
-                Items = x.Items.Select(i => new OrderItemViewModel
-                    {
-                        ProductName = i.Product!.Name,
-                        Quantity = i.Quantity,
-                        UnitPrice = i.UnitPrice,
-                        TotalPrice = i.SubTotal
-                    }
+                Items = x.Items.Select(i => new OrderItemDto
+                {
+                    ProductName = i.Product!.Name,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    TotalPrice = i.SubTotal
+                }
                 ).ToList()
             })
             .FirstOrDefaultAsync();
-        
-        if (order is null)
-            return Result<OrderDetailsViewModel>.Failure("Order not found", ErrorCode.NotFound);
 
-        var response = new OrderDetailsViewModel
+        if (order is null)
+            return Result<OrderDto>.Failure("Order not found", ErrorCode.NotFound);
+
+        var response = new OrderDto
         {
             Id = order.Id,
             OrderNumber = order.OrderNumber,
@@ -175,7 +174,7 @@ public class OrderService(AppDbContext context) : IOrderService
             Items = order.Items
         };
 
-        return Result<OrderDetailsViewModel>.Success(response);
+        return Result<OrderDto>.Success(response);
     }
 
     public async Task<Result> CancelOrder(int orderId)
@@ -186,11 +185,11 @@ public class OrderService(AppDbContext context) : IOrderService
 
         if (order is null)
             return Result.Failure("Order not found", ErrorCode.NotFound);
-        
+
         // Check Status Cancelled
         if (order.Status == OrderStatus.Cancelled)
             return Result.Failure("Order already cancelled", ErrorCode.BadRequest);
-        
+
         // Check Status Completed
         if (order.Status != OrderStatus.Completed)
             return Result.Failure("Only completed orders can be cancelled", ErrorCode.BadRequest);
@@ -218,7 +217,12 @@ public class OrderService(AppDbContext context) : IOrderService
         // Update Order Status
         order.Status = OrderStatus.Cancelled;
         await _context.SaveChangesAsync();
-        
+
         return Result.Success();
+    }
+
+    private static string GenerateOrderNumber(int id)
+    {
+        return $"ORD-{DateTime.UtcNow:yyyyMMdd}-{id:D6}";
     }
 }

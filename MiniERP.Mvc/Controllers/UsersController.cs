@@ -76,7 +76,12 @@ public class UsersController(IUserService service) : Controller
         Response.Cookies.Append("refresh_token", data.RefreshToken);
 
         // Create Cookies Authentication
-        var claims = new List<Claim> { new(ClaimTypes.Name, vm.Email) };
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, data.UserId.ToString()),
+            new(ClaimTypes.Email, data.Email),
+            new(ClaimTypes.Role, data.Role)
+        };
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 
