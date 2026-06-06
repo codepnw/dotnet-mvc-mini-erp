@@ -1,3 +1,4 @@
+@using MiniERP.Mvc.Entities
 @model OrderDetailsVm
 
 @{
@@ -88,6 +89,14 @@
                 }
             </tbody>
         </table>
+
+        @if (Model.Order.Status != OrderStatus.Cancelled)
+        {
+            <a asp-action="Cancel" asp-route-id="@Model.Order.Id" class="btn btn-danger">
+                Cancel
+            </a>
+        }
+        
         <a asp-action="Index" class="btn btn-secondary">
             Back
         </a>

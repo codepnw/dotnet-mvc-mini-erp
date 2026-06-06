@@ -28,25 +28,16 @@
                 <input asp-for="Id" type="hidden"/>
 
                 <div class="mb-3">
-                    @* <label asp-for="EmployeeId" class="form-label"></label> *@
-                    @* <input asp-for="EmployeeId" *@
-                    @*        class="form-control" *@
-                    @*        readonly/> *@
                     <strong>Employee:</strong>
                     <div>@Model.EmployeeName</div>
                 </div>
 
                 <div class="mb-3">
-                    @* <label asp-for="LeaveTypeId" class="form-label"></label> *@
-                    @* <input asp-for="LeaveTypeId" *@
-                    @*        class="form-control" *@
-                    @*        readonly/> *@
                     <strong>Leave Type:</strong>
                     <div>@Model.LeaveTypeTitle</div>
                 </div>
 
                 <div class="mb-3">
-                    @* <label asp-for="FromDate" class="form-label"></label> *@
                     <strong>From Date:</strong>
                     <input asp-for="FromDate"
                            type="date"
@@ -55,7 +46,6 @@
                 </div>
 
                 <div class="mb-3">
-                    @* <label asp-for="ToDate" class="form-label"></label> *@
                     <strong>To Date:</strong>
                     <input asp-for="ToDate"
                            type="date"
@@ -64,7 +54,6 @@
                 </div>
 
                 <div class="mb-4">
-                    @* <label asp-for="Reason" class="form-label"></label> *@
                     <strong>Reason:</strong>
                     <textarea asp-for="Reason"
                               rows="4"

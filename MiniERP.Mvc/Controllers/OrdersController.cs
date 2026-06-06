@@ -1,7 +1,7 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Mappings;
@@ -16,6 +16,7 @@ public class OrdersController(IOrderService service, IProductService productServ
     private readonly IOrderService _service = service;
     private readonly IProductService _productService = productService;
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Index(OrderQuery query)
     {
@@ -36,23 +37,25 @@ public class OrdersController(IOrderService service, IProductService productServ
         return View(vm);
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        var productResult = await _productService.ListProducts(new ProductQuery());
+        var products = await GetSelectProducts();
 
         var vm = new OrderFormVm();
 
-        if (productResult.IsFailure)
+        if (products.IsFailure)
         {
-            ModelState.AddModelError("", productResult.ErrorMessage!);
+            ModelState.AddModelError("", products.ErrorMessage!);
             return View(vm);
         }
 
-        vm.Products = [.. productResult.Data!.Items.Select(x => x.ToSelectVm())];
+        vm.Products = products.Data!;
         return View(vm);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(OrderFormVm vm)
     {
@@ -64,7 +67,13 @@ public class OrdersController(IOrderService service, IProductService productServ
 
         if (result.IsFailure)
         {
-            // TODO: Get Products if fail
+            var products = await GetSelectProducts();
+            if (products.IsFailure)
+            {
+                ModelState.AddModelError("", result.ErrorMessage!);
+                return View(vm);
+            }
+            vm.Products = products.Data!;
 
             ModelState.AddModelError("", result.ErrorMessage!);
             return View(vm);
@@ -73,6 +82,7 @@ public class OrdersController(IOrderService service, IProductService productServ
         return RedirectToAction("Details", new { id = result.Data });
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -89,10 +99,28 @@ public class OrdersController(IOrderService service, IProductService productServ
         return View(vm);
     }
 
-    // private async Task<List<ProductSelectVm>> GetSelectProducts()
-    // {
-    //     var result = await _productService.ListProducts(new ProductQuery());
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> Cancel(int id)
+    {
+        var result = await _service.CancelOrder(id);
 
-    //     return result.Data!.Items.Select(x => x.ToSelectVm());
-    // }
+        return result.IsFailure
+            ? View("Error", new ErrorViewModel { ErrorMessage = result.ErrorMessage })
+            : RedirectToAction("Index");
+    }
+
+    private async Task<Result<List<ProductSelectVm>>> GetSelectProducts()
+    {
+        var result = await _productService.ListProducts(new ProductQuery());
+
+        if (result.IsFailure)
+        {
+            return Result<List<ProductSelectVm>>.Failure(result.ErrorMessage!, ErrorCode.InternalServerError);
+        }
+
+        var products = result.Data!.Items.Select(x => x.ToSelectVm()).ToList();
+
+        return Result<List<ProductSelectVm>>.Success(products);
+    }
 }
