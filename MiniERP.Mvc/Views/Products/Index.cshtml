@@ -13,28 +13,29 @@
         </div>
     }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Manage Products</h2>
-
-        <a asp-action="Create" class="btn btn-primary">
-            Create Product
-        </a>
-    </div>
-
     @if (Model.Products.Items.Any())
     {
         <div class="card shadow-sm">
-            <div class="card-body">
+            @* -------- Header --------- *@
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Products</h5>
 
-                <table class="table table-bordered table-hover mb-0">
-                    <thead class="table-light">
+                <a asp-action="Create" class="btn btn-primary btn-sm">
+                    Create Product
+                </a>
+            </div>
+
+            @* -------- Body ----------- *@
+            <div class="card-body">
+                <table class="table table-hover align-middle">
+                    <thead class="table-secondary">
                         <tr>
-                            <th>Id</th>
+                            <th width="80">Id</th>
                             <th>Name</th>
                             <th>SKU</th>
                             <th>Price</th>
                             <th>Stock</th>
-                            <th width="220">Actions</th>
+                            <th width="180">Actions</th>
                         </tr>
                     </thead>
 
@@ -48,14 +49,22 @@
                                 <td>@item.Price.ToString("N2")</td>
                                 <td>@item.Stock</td>
 
+                                @* ----- Actions ------ *@
                                 <td>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">
-                                        Details
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info btn-sm">
+                                        <i class="bi bi-eye"></i>
                                     </a>
 
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm text-white">
-                                        Edit
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-pencil"></i>
                                     </a>
+
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                          onsubmit="return confirm('Confirm Delete Product?')">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
 
                                     <a asp-controller="ProductStocks" asp-action="Manage" asp-route-id="@item.Id" class="btn btn-dark btn-sm text-white">
                                         Stock
@@ -73,8 +82,19 @@
     }
     else
     {
-        <div class="alert alert-secondary">
-            No products found.
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <h5>No Products Found</h5>
+
+                <p class="text-muted">
+                    Create your first product to get started
+                </p>
+
+                <a asp-action="Create" class="btn btn-primary">
+                    Create Product
+                </a>
+            </div>
         </div>
     }
 
