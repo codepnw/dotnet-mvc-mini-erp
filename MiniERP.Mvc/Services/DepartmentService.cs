@@ -1,20 +1,11 @@
-using System;
-using System.Drawing;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.DTOs.Responses;
-using MiniERP.Mvc.Entities;
-using MiniERP.Mvc.Exceptions;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
@@ -35,10 +26,14 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
     {
         var query = _context.Departments.AsNoTracking().AsQueryable();
 
-        // Search name
+        // Global Search: Id, Title
         if (!string.IsNullOrEmpty(request.Search))
         {
-            query = query.Where(x => x.Title.Contains(request.Search));
+            var isId = int.TryParse(request.Search, out var id);
+
+            query = query.Where(x =>
+                x.Title.Contains(request.Search) ||
+                (isId && x.Id == id));
         }
 
         // Total Count
@@ -88,7 +83,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
         _context.Departments.Add(department);
         await _context.SaveChangesAsync();
-        
+
         return Result<DepartmentDto>.Success(department.ToDto());
     }
 
@@ -110,7 +105,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
         department.Title = request.Title;
         department.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        
+
         return Result.Success();
     }
 
@@ -124,7 +119,7 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
         department.IsDeleted = true;
         department.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
-        
+
         return Result.Success();
     }
 }

@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using MiniERP.Mvc.Common;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
@@ -8,7 +7,6 @@ using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
@@ -35,16 +33,16 @@ public class ProductService(AppDbContext context) : IProductService
     {
         var query = _context.Products.AsQueryable();
 
-        // Search name
-        if (!string.IsNullOrWhiteSpace(request.Name))
+        // Global Search: Id, Name, SKU, CategoryTitle
+        if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            query = query.Where(x => x.Name.Contains(request.Name));
-        }
+            var isId = int.TryParse(request.Search, out var id);
 
-        // Filter category id
-        if (request.CategoryId.HasValue)
-        {
-            query = query.Where(x => x.CategoryId == request.CategoryId.Value);
+            query = query.Where(x => 
+                x.Name.Contains(request.Search) ||
+                x.Sku.Contains(request.Search) ||
+                x.Category!.Title.Contains(request.Search) ||
+                (isId && x.Id == id));
         }
 
         // Total count

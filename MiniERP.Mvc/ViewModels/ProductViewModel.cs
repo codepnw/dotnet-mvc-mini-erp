@@ -5,20 +5,6 @@ using MiniERP.Mvc.DTOs.Responses;
 
 namespace MiniERP.Mvc.ViewModels;
 
-// public class ProductViewModel
-// {
-//     public int Id { get; set; }
-//     public required string Name { get; set; }
-//     public required string Sku { get; set; }
-//     public decimal Price { get; set; }
-//     public int Stock { get; set; }
-//     public int MinimumStock { get; set; }
-//     public string? CategoryTitle { get; set; }
-//
-//     public DateTime CreatedAt { get; set; }
-//     public DateTime? UpdatedAt { get; set; }
-// }
-
 public class ProductIndexVm
 {
     public ProductQuery Query { get; set; } = new();

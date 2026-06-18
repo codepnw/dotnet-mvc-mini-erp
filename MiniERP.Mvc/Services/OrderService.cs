@@ -93,6 +93,16 @@ public class OrderService(AppDbContext context) : IOrderService
     {
         var query = _context.Orders.AsNoTracking().AsQueryable();
 
+        // Global Search: Id, OrderNumber
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var isId = int.TryParse(request.Search, out var id);
+
+            query = query.Where(x =>
+                x.OrderNumber.Contains(request.Search) ||
+                (isId && x.Id == id));
+        }
+
         // Filter Status
         if (request.Status.HasValue)
         {

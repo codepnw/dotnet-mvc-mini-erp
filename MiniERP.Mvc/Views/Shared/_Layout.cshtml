@@ -1,4 +1,5 @@
-﻿@{
+﻿@using System.Security.Claims
+@{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 
@@ -21,7 +22,7 @@
         <div class="row min-vh-100">
             @if (User.Identity?.IsAuthenticated == true)
             {
-                <!-- Sidebar -->
+                @* ---- Sidebar ---- *@
                 <div class="col-md-2 bg-white border-end shadow-sm p-3 min-vh-100">
 
                     <div class="mb-4">
@@ -110,29 +111,32 @@
                             </a>
                         </li>
                     </ul>
-
-                    <div class="mt-auto">
-                        <hr />
-
-                        <div class="small text-muted">
-                            Signed in as
-                        </div>
-
-                        <div class="fw-semibold mb-2">
-                            @User.Identity?.Name
-                        </div>
-
-                        <form asp-controller="Users" asp-action="Logout" method="post">
-
-                            <button class="btn btn-outline-danger w-100">
-                                Logout
-                            </button>
-                        </form>
-                    </div>
                 </div>
 
-                <!-- Content -->
-                <div class="col-md-10 p-4">
+                <div class="col-md-10">
+                    @* ------ Navbor ----- *@
+                    <nav class="navbar navbar-expand bg-white border-bottom shadow-sm px-4">
+                        <div class="ms-auto">
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-circle me-1"></i>
+                                    @User.FindFirst(ClaimTypes.Email)?.Value
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <form asp-controller="Users" asp-action="Logout" method="post">
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+
+                    @* ---- Content ---- *@
                     @RenderBody()
                 </div>
             }

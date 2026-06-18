@@ -32,18 +32,23 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
         _context.Categories.Add(request.ToEntity());
         await _context.SaveChangesAsync();
-        
-        return  Result.Success();
+
+        return Result.Success();
     }
 
-    public async Task<Result<PagedResult<CategoryDto>>> ListCategories(CategoryQuery req)
+    public async Task<Result<PagedResult<CategoryDto>>> ListCategories(CategoryQuery request)
     {
         var query = _context.Categories.AsNoTracking().AsQueryable();
 
-        // Search Title
-        if (!string.IsNullOrEmpty(req.Title))
+        // Global Search: Id, Title, Description
+        if (!string.IsNullOrEmpty(request.Search))
         {
-            query = query.Where(x => x.Title.Contains(req.Title));
+            var isId = int.TryParse(request.Search, out var id);
+
+            query = query.Where(x =>
+                x.Title.Contains(request.Search) ||
+                x.Description!.Contains(request.Search) ||
+                (isId && x.Id == id));
         }
 
         // Count Items
@@ -51,7 +56,7 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
         // List Items
         var items = await query
-            .Paginate(req.Page, req.PageSize)
+            .Paginate(request.Page, request.PageSize)
             .Select(x => new CategoryDto
             {
                 Id = x.Id,
@@ -63,8 +68,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
         var result = new PagedResult<CategoryDto>()
         {
             Items = items,
-            Page = req.Page,
-            PageSize = req.PageSize,
+            Page = request.Page,
+            PageSize = request.PageSize,
             TotalCount = totalCount
         };
 
@@ -100,8 +105,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
         // Update Category
         request.ApplyUpdate(category);
         await _context.SaveChangesAsync();
-        
-        return  Result.Success();
+
+        return Result.Success();
     }
 
     public async Task<Result> DeleteCategory(int id)
@@ -114,8 +119,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
         // Soft Delete Category
         category.IsDeleted = true;
         await _context.SaveChangesAsync();
-        
-        return  Result.Success();
+
+        return Result.Success();
     }
 
     private async Task<Result<Category>> FindCategoryById(int id)

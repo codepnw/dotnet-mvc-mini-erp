@@ -83,26 +83,31 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
     {
         var query = _context.LeaveRequests.AsNoTracking().AsQueryable();
 
+        // Global Search: Id, FirstName, LastName
+        if (!string.IsNullOrWhiteSpace(req.Search))
+        {
+            var isId = int.TryParse(req.Search, out var id);
+
+            query = query.Where(x => 
+                x.Employee!.FirstName.Contains(req.Search) || 
+                x.Employee.LastName.Contains(req.Search) || 
+                (isId && x.Id == id));
+        }
+
         // Search Status
-        if (req.Status is not null)
+        if (req.Status.HasValue)
         {
             query = query.Where(x => x.Status == req.Status);
         }
 
-        // Filter EmployeeId 
-        if (req.EmployeeId is not null)
-        {
-            query = query.Where(x => x.EmployeeId == req.EmployeeId);
-        }
-
         // Filter From Date
-        if (req.FromDate is not null)
+        if (req.FromDate.HasValue)
         {
             query = query.Where(x => x.FromDate.Date >= req.FromDate.Value.Date);
         }
 
         // Filter To Date
-        if (req.ToDate is not null)
+        if (req.ToDate.HasValue)
         {
             query = query.Where(x => x.ToDate.Date <= req.ToDate.Value.Date);
         }

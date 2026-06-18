@@ -6,7 +6,6 @@ using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.DTOs.Responses;
 using MiniERP.Mvc.Extensions;
 using MiniERP.Mvc.Mappings;
-using MiniERP.Mvc.ViewModels;
 
 namespace MiniERP.Mvc.Services;
 
@@ -36,7 +35,7 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 
         _context.Employees.Add(employee);
         await _context.SaveChangesAsync();
-        
+
         return Result<EmployeeDto>.Success(employee.ToResponseDto());
     }
 
@@ -44,18 +43,16 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
     {
         var query = _context.Employees.AsNoTracking().AsQueryable();
 
-        // Search name
+        // Global Search: Id, Firstname, Lastname, DepartmentTitle
         if (!string.IsNullOrEmpty(request.Search))
         {
+            var isId = int.TryParse(request.Search, out var id);
+
             query = query.Where(x =>
                 x.FirstName.Contains(request.Search) ||
-                x.LastName.Contains(request.Search));
-        }
-
-        // Filter departmentId 
-        if (request.DepartmentId is not null)
-        {
-            query = query.Where(x => x.DepartmentId == request.DepartmentId);
+                x.LastName.Contains(request.Search) ||
+                (x.Department != null && x.Department!.Title.Contains(request.Search)) ||
+                (isId && x.Id == id));
         }
 
         // Total Count
@@ -109,7 +106,7 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 
         request.ApplyEditEntity(employee);
         await _context.SaveChangesAsync();
-        
+
         return Result.Success();
     }
 
@@ -122,7 +119,7 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 
         data.IsDeleted = true;
         await _context.SaveChangesAsync();
-        
+
         return Result.Success();
     }
 }
