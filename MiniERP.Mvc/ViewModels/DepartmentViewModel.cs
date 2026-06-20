@@ -21,7 +21,7 @@ public class DepartmentDetailsVm
 
 public class DepartmentFormVm
 {
-    [Required(ErrorMessage = "Title is required"), StringLength(50, MinimumLength = 3)]
+    [Required(ErrorMessage = "Title is required"), StringLength(50, MinimumLength = 2)]
     public string Title { get; set; } = string.Empty;
 
     public string? ErrorMessage { get; set; }

@@ -32,13 +32,13 @@
                 @* ----------- Search --------- *@
                 <form action="" method="get">
                     <div class="row mb-3">
-                        <div class="col md-4">
+                        <div class="col-md-4">
                             <input type="text" name="Search" class="form-control form-control-sm" placeholder="Search by id, name, department..."
                                    value="@Model.Query.Search" />
                         </div>
 
                         <div class="col-auto">
-                            <button type="submit" class="btn btn-info btn-sm">
+                            <button type="submit" class="btn btn-outline-primary btn-sm text-black">
                                 Search
                             </button>
                         </div>
@@ -88,6 +88,42 @@
                         }
                     </tbody>
                 </table>
+
+                @* ------ Pagination ------ *@
+                @if (Model.Employees.TotalPages > 1)
+                {
+                    <nav class="mt-3">
+                        <ul class="pagination justify-content-center">
+                            @* Previous *@
+                            <li class="page-item @(Model.Employees.Page == 1 ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(Model.Employees.Page - 1)"
+                                   asp-route-search="@Model.Query.Search">
+                                    Previous
+                                </a>
+                            </li>
+
+                            @* Page Number *@
+                            @for (int i = 1; i <= Model.Employees.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Employees.Page ? "active" : "")">
+                                    <a class="page-link" asp-action="Index" asp-route-page="@i"
+                                       asp-route-search="@Model.Query.Search">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            @* Next *@
+                            <li class="page-item @(Model.Employees.Page == Model.Employees.TotalPages ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(Model.Employees.Page + 1)"
+                                   asp-route-search="@Model.Query.Search">
+                                    Next
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+
             </div>
             @* ------ End Body ----- *@
         </div>
