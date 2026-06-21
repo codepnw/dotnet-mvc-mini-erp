@@ -30,10 +30,16 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 // Add Authentication
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(opts =>
+    .AddCookie(options =>
     {
-        opts.LoginPath = "/Users/Login";
-        opts.AccessDeniedPath = "/Users/Login";
+        // Cookies Config
+        options.ExpireTimeSpan = TimeSpan.FromHours(12);
+        options.SlidingExpiration = false;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+
+        options.LoginPath = "/Users/Login";
+        options.AccessDeniedPath = "/Users/Login";
     });
 builder.Services.AddAuthorization();
 

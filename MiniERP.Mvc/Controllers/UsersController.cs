@@ -71,9 +71,9 @@ public class UsersController(IUserService service) : Controller
             return View(vm);
         }
 
-        // Save JWT Token
-        Response.Cookies.Append("access_token", data.AccessToken);
-        Response.Cookies.Append("refresh_token", data.RefreshToken);
+        // Enable JWT Token
+        // Response.Cookies.Append("access_token", data.AccessToken);
+        // Response.Cookies.Append("refresh_token", data.RefreshToken);
 
         // Create Cookies Authentication
         var claims = new List<Claim>
@@ -82,10 +82,17 @@ public class UsersController(IUserService service) : Controller
             new(ClaimTypes.Email, data.Email),
             new(ClaimTypes.Role, data.Role)
         };
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
 
-        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        var authenticationSchema = CookieAuthenticationDefaults.AuthenticationScheme;
+        var identity = new ClaimsIdentity(claims, authenticationSchema);
+        var principal = new ClaimsPrincipal(identity);
+        var authenticationProp = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(12)
+        };
+
+        await HttpContext.SignInAsync(authenticationSchema, principal, authenticationProp);
 
         return RedirectToAction("Index", "Dashboard");
     }
