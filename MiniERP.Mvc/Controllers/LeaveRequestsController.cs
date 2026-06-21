@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using MiniERP.Mvc.Common.Constants;
 using MiniERP.Mvc.Common.Queries;
-using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.Entities;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Services;
@@ -14,7 +13,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
 {
     private readonly ILeaveRequestService _service = service;
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> Index(LeaveRequestQuery query)
     {
@@ -35,7 +34,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Employee)]
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -53,7 +52,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Employee)]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -66,7 +65,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Employee)]
     [HttpPost]
     public async Task<IActionResult> Create(LeaveRequestFormVm vm)
     {
@@ -89,7 +88,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return RedirectToAction("index");
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Employee)]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -106,7 +105,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return View(result.Data!.ToViewModel());
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Employee)]
     [HttpPost]
     public async Task<IActionResult> Edit(int id, LeaveRequestFormVm vm)
     {
@@ -123,7 +122,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
         return RedirectToAction("index");
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Approve(int id)
     {
@@ -134,7 +133,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
             : RedirectToAction("index");
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Reject(int id)
     {
@@ -145,7 +144,7 @@ public class LeaveRequestsController(ILeaveRequestService service) : Controller
             : RedirectToAction("index");
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

@@ -5,6 +5,7 @@ using MiniERP.Mvc.ViewModels;
 using MiniERP.Mvc.DTOs.Requests;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
+using MiniERP.Mvc.Common.Constants;
 
 namespace MiniERP.Mvc.Controllers;
 
@@ -12,7 +13,7 @@ public class ProductStocksController(IProductService service) : Controller
 {
     private readonly IProductService _service = service;
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> Manage(int id)
     {
@@ -29,7 +30,7 @@ public class ProductStocksController(IProductService service) : Controller
         return View(result.Data!.ToStockViewModel());
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.AdminAndEmployee)]
     [HttpGet]
     public async Task<IActionResult> LowStock()
     {
@@ -47,7 +48,7 @@ public class ProductStocksController(IProductService service) : Controller
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> Increase(int id)
     {
@@ -57,7 +58,7 @@ public class ProductStocksController(IProductService service) : Controller
         });
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Increase(int id, ProductStockVm vm)
     {
@@ -74,7 +75,7 @@ public class ProductStocksController(IProductService service) : Controller
         return RedirectToProducts();
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> Decrease(int id)
     {
@@ -84,7 +85,7 @@ public class ProductStocksController(IProductService service) : Controller
         });
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Decrease(int id, ProductStockVm vm)
     {
@@ -101,7 +102,7 @@ public class ProductStocksController(IProductService service) : Controller
         return RedirectToProducts();
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> NewStock(int id)
     {
@@ -111,7 +112,7 @@ public class ProductStocksController(IProductService service) : Controller
         });
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> NewStock(int id, ProductAdjustStockVm vm)
     {

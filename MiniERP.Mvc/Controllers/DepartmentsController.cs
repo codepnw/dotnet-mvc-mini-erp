@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniERP.Mvc.Common.Constants;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.Mappings;
@@ -12,7 +13,7 @@ namespace MiniERP.Mvc.Controllers
     {
         private readonly IDepartmentService _service = service;
 
-        [Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpGet]
         public async Task<IActionResult> Index(DepartmentQuery query)
         {
@@ -33,7 +34,7 @@ namespace MiniERP.Mvc.Controllers
             return View(vm);
         }
 
-        [Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -51,14 +52,14 @@ namespace MiniERP.Mvc.Controllers
             return View(vm);
         }
 
-        [Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpGet]
         public IActionResult Create()
         {
             return View(new DepartmentFormVm());
         }
 
-        [Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpPost]
         public async Task<IActionResult> Create(DepartmentFormVm vm)
         {
@@ -75,7 +76,7 @@ namespace MiniERP.Mvc.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -92,7 +93,7 @@ namespace MiniERP.Mvc.Controllers
             return View(result.Data!.ToViewModel());
         }
 
-        [Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpPost]
         public async Task<IActionResult> Edit(int id, DepartmentFormVm vm)
         {
@@ -109,7 +110,7 @@ namespace MiniERP.Mvc.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize]
+        [Authorize(Roles = Roles.Admin)]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {

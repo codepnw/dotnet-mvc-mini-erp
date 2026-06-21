@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Constants;
+using MiniERP.Mvc.Common.CurrentUser;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
@@ -18,12 +20,15 @@ public interface IEmployeeService
     Task<Result> DeleteEmployee(int id);
 }
 
-public class EmployeeService(AppDbContext context) : IEmployeeService
+public class EmployeeService(AppDbContext context, ICurrentUser currentUser) : IEmployeeService
 {
     private readonly AppDbContext _context = context;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<Result<EmployeeDto>> CreateEmployee(EmployeeCreateRequest request)
     {
+        if (!_currentUser.IsAdmin) return Result<EmployeeDto>.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var deptExists = await _context.Departments
             .AsNoTracking()
             .AnyAsync(x => x.Id == request.DepartmentId);
@@ -41,6 +46,8 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 
     public async Task<Result<PagedResult<EmployeeDto>>> ListEmployees(EmployeeQuery request)
     {
+        if (!_currentUser.IsAdmin) return Result<PagedResult<EmployeeDto>>.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var query = _context.Employees.AsNoTracking().AsQueryable();
 
         // Global Search: Id, Firstname, Lastname, DepartmentTitle
@@ -112,6 +119,8 @@ public class EmployeeService(AppDbContext context) : IEmployeeService
 
     public async Task<Result> DeleteEmployee(int id)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var data = await _context.Employees.FirstOrDefaultAsync(x => x.Id == id);
 
         if (data is null)

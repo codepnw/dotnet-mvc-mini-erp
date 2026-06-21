@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Mvc.Common.CurrentUser;
 using MiniERP.Mvc.Controllers;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.Middlewares;
@@ -17,6 +18,7 @@ builder.Services.AddSqlServer<AppDbContext>(
     builder.Configuration.GetConnectionString("DefaultConnection")
 );
 
+// DI
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
@@ -26,6 +28,7 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
 // Add Authentication
 builder.Services
@@ -45,6 +48,7 @@ builder.Services.AddAuthorization();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Constants;
+using MiniERP.Mvc.Common.CurrentUser;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
@@ -20,12 +22,15 @@ public interface ICategoryService
     Task<Result> DeleteCategory(int id);
 }
 
-public class CategoryService(AppDbContext context) : ICategoryService
+public class CategoryService(AppDbContext context, ICurrentUser currentUser) : ICategoryService
 {
     private readonly AppDbContext _context = context;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<Result> Create(CategoryCreateRequest request)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+        
         var exists = await _context.Categories.AnyAsync(x => x.Title == request.Title);
 
         if (exists) return Result.Failure("Category already exists", ErrorCode.BadRequest);
@@ -89,6 +94,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
     public async Task<Result> UpdateCategory(int id, CategoryUpdateRequest request)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var result = await FindCategoryById(id);
         var category = result.Data;
 
@@ -111,6 +118,8 @@ public class CategoryService(AppDbContext context) : ICategoryService
 
     public async Task<Result> DeleteCategory(int id)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var result = await FindCategoryById(id);
         var category = result.Data;
 

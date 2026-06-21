@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Constants;
+using MiniERP.Mvc.Common.CurrentUser;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
@@ -18,9 +21,10 @@ public interface IDepartmentService
     Task<Result> DeleteDepartment(int id);
 }
 
-public class DepartmentService(AppDbContext context) : IDepartmentService
+public class DepartmentService(AppDbContext context, ICurrentUser currentUser) : IDepartmentService
 {
     private readonly AppDbContext _context = context;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<Result<PagedResult<DepartmentDto>>> ListDepartments(DepartmentQuery request)
     {
@@ -74,10 +78,11 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
     public async Task<Result<DepartmentDto>> CreateDepartment(DepartmentRequest request)
     {
+        if (!_currentUser.IsAdmin) return Result<DepartmentDto>.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var exists = await _context.Departments.AnyAsync(d => d.Title == request.Title);
 
-        if (exists)
-            return Result<DepartmentDto>.Failure("Title already exists", ErrorCode.Conflict);
+        if (exists) return Result<DepartmentDto>.Failure("Title already exists", ErrorCode.Conflict);
 
         var department = request.ToEntity();
 
@@ -89,18 +94,18 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
     public async Task<Result> EditDepartment(int id, DepartmentRequest request)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var department = await _context.Departments.FirstOrDefaultAsync(d => d.Id == id);
 
-        if (department is null)
-            return Result.Failure("Department not found", ErrorCode.NotFound);
+        if (department is null) return Result.Failure("Department not found", ErrorCode.NotFound);
 
         var exists = await _context.Departments.AnyAsync(d =>
             d.Id != id &&
             d.Title == request.Title
         );
 
-        if (exists)
-            return Result.Failure("Title already exists", ErrorCode.Conflict);
+        if (exists) return Result.Failure("Title already exists", ErrorCode.Conflict);
 
         department.Title = request.Title;
         department.UpdatedAt = DateTime.UtcNow;
@@ -111,6 +116,8 @@ public class DepartmentService(AppDbContext context) : IDepartmentService
 
     public async Task<Result> DeleteDepartment(int id)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var department = await _context.Departments.FirstOrDefaultAsync(d => d.Id == id);
 
         if (department is null)

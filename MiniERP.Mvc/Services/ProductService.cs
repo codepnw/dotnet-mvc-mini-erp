@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Constants;
+using MiniERP.Mvc.Common.CurrentUser;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
@@ -25,9 +27,10 @@ public interface IProductService
     Task<Result> AdjustStock(int productId, ProductStockAdjustRequest request);
 }
 
-public class ProductService(AppDbContext context) : IProductService
+public class ProductService(AppDbContext context, ICurrentUser currentUser) : IProductService
 {
     private readonly AppDbContext _context = context;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<Result<PagedResult<ProductDto>>> ListProducts(ProductQuery request)
     {
@@ -38,7 +41,7 @@ public class ProductService(AppDbContext context) : IProductService
         {
             var isId = int.TryParse(request.Search, out var id);
 
-            query = query.Where(x => 
+            query = query.Where(x =>
                 x.Name.Contains(request.Search) ||
                 x.Sku.Contains(request.Search) ||
                 x.Category!.Title.Contains(request.Search) ||
@@ -85,7 +88,7 @@ public class ProductService(AppDbContext context) : IProductService
         // Add Product
         _context.Add(product);
         await _context.SaveChangesAsync();
-        
+
         return Result<ProductDto>.Success(product.ToProductDto());
     }
 
@@ -137,12 +140,14 @@ public class ProductService(AppDbContext context) : IProductService
         // Update Product
         request.ApplyUpdate(product);
         await _context.SaveChangesAsync();
-        
+
         return Result.Success();
     }
 
     public async Task<Result> DeleteProduct(int id)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var result = await FindProductById(id);
         var product = result.Data;
 
@@ -151,7 +156,7 @@ public class ProductService(AppDbContext context) : IProductService
         // Soft Delete Product
         product.IsDeleted = true;
         await _context.SaveChangesAsync();
-        
+
         return Result.Success();
     }
 

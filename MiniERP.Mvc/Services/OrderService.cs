@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Constants;
+using MiniERP.Mvc.Common.CurrentUser;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
@@ -17,9 +19,10 @@ public interface IOrderService
     Task<Result> CancelOrder(int orderId);
 }
 
-public class OrderService(AppDbContext context) : IOrderService
+public class OrderService(AppDbContext context, ICurrentUser currentUser) : IOrderService
 {
     private readonly AppDbContext _context = context;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<Result<int>> CreateOrder(int userId, OrderCreateRequest request)
     {
@@ -91,6 +94,8 @@ public class OrderService(AppDbContext context) : IOrderService
 
     public async Task<Result<PagedResult<OrderDto>>> ListOrders(OrderQuery request)
     {
+        if (!_currentUser.IsAdmin) return Result<PagedResult<OrderDto>>.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var query = _context.Orders.AsNoTracking().AsQueryable();
 
         // Global Search: Id, OrderNumber
@@ -189,6 +194,8 @@ public class OrderService(AppDbContext context) : IOrderService
 
     public async Task<Result> CancelOrder(int orderId)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var order = await _context.Orders
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == orderId);

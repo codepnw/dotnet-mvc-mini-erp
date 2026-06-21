@@ -6,6 +6,7 @@ public enum ErrorCode
 {
     None = 0,
     BadRequest = 400,
+    Forbiden = 403,
     NotFound = 404,
     Conflict = 409,
     InternalServerError = 500

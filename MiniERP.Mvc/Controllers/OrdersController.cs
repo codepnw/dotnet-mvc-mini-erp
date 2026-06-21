@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Constants;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Mappings;
 using MiniERP.Mvc.Services;
@@ -16,7 +17,7 @@ public class OrdersController(IOrderService service, IProductService productServ
     private readonly IOrderService _service = service;
     private readonly IProductService _productService = productService;
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> Index(OrderQuery query)
     {
@@ -37,7 +38,7 @@ public class OrdersController(IOrderService service, IProductService productServ
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Employee)]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -55,7 +56,7 @@ public class OrdersController(IOrderService service, IProductService productServ
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Employee)]
     [HttpPost]
     public async Task<IActionResult> Create(OrderFormVm vm)
     {
@@ -82,7 +83,7 @@ public class OrdersController(IOrderService service, IProductService productServ
         return RedirectToAction("Details", new { id = result.Data });
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.AdminAndEmployee)]
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -99,7 +100,7 @@ public class OrdersController(IOrderService service, IProductService productServ
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Cancel(int id)
     {

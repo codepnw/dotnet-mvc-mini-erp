@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using MiniERP.Mvc.Common.Constants;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.DTOs.Requests;
 using MiniERP.Mvc.Mappings;
@@ -13,7 +14,7 @@ public class ProductsController(IProductService service) : Controller
 {
     private readonly IProductService _service = service;
 
-    [Authorize]
+    [Authorize(Roles = Roles.AdminAndEmployee)]
     [HttpGet]
     public async Task<IActionResult> Index(ProductQuery query)
     {
@@ -34,14 +35,14 @@ public class ProductsController(IProductService service) : Controller
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
         return View(new ProductFormVm());
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Create(ProductFormVm vm)
     {
@@ -58,7 +59,7 @@ public class ProductsController(IProductService service) : Controller
         return RedirectToAction("Index");
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.AdminAndEmployee)]
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {
@@ -76,7 +77,7 @@ public class ProductsController(IProductService service) : Controller
         return View(vm);
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -93,7 +94,7 @@ public class ProductsController(IProductService service) : Controller
         return View(result.Data!.ToViewModel());
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Edit(int id, ProductFormVm vm)
     {
@@ -110,7 +111,7 @@ public class ProductsController(IProductService service) : Controller
         return RedirectToAction("Index");
     }
 
-    [Authorize]
+    [Authorize(Roles = Roles.Admin)]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

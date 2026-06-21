@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Mvc.Common;
+using MiniERP.Mvc.Common.Constants;
+using MiniERP.Mvc.Common.CurrentUser;
 using MiniERP.Mvc.Common.Queries;
 using MiniERP.Mvc.Data;
 using MiniERP.Mvc.DTOs.Requests;
@@ -25,9 +27,10 @@ public interface ILeaveRequestService
     Task<List<LeaveRequestTypeDto>> ListLeaveTypes();
 }
 
-public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
+public class LeaveRequestService(AppDbContext context, ICurrentUser currentUser) : ILeaveRequestService
 {
     private readonly AppDbContext _context = context;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<Result> CreateLeaveRequest(LeaveRequestCreateRequest request)
     {
@@ -81,6 +84,8 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
 
     public async Task<Result<PagedResult<LeaveRequestDto>>> ListLeaveRequests(LeaveRequestQuery req)
     {
+        if (!_currentUser.IsAdmin) return Result<PagedResult<LeaveRequestDto>>.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var query = _context.LeaveRequests.AsNoTracking().AsQueryable();
 
         // Global Search: Id, FirstName, LastName
@@ -173,6 +178,8 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
 
     public async Task<Result> UpdateLeaveRequestStatus(int id, LeaveStatus status)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var result = await FindLeaveRequestById(id);
         var data = result.Data;
 
@@ -191,6 +198,8 @@ public class LeaveRequestService(AppDbContext context) : ILeaveRequestService
 
     public async Task<Result> DeleteLeaveRequest(int id)
     {
+        if (!_currentUser.IsAdmin) return Result.Failure(Errors.ErrNoPermission, ErrorCode.Forbiden);
+
         var result = await FindLeaveRequestById(id);
         var data = result.Data;
 
